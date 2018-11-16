@@ -8,6 +8,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Runes.Core\Runes.Core.csproj" />
+    <Reference Include="Runes.Core">
+      <HintPath>..\..\bin\netcoreapp2.1\Runes.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

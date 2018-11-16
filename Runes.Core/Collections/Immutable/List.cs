@@ -69,6 +69,8 @@ namespace Runes.Collections.Immutable
 
         public override List<A> Tail => this;
 
+        public override string ToString() => string.Empty;
+
         internal EmptyList() {}
     }
 
@@ -84,5 +86,8 @@ namespace Runes.Collections.Immutable
 
         public override Option<A> HeadOption => Option.Some(Head);
         public override List<A> Tail { get; }
+
+        public override string ToString() =>
+            $"{Head}{(Tail.NonEmpty ? $", {Tail}" : string.Empty)}";
     }
 }

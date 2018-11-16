@@ -2,7 +2,7 @@
 
 namespace Runes.Core.Test
 {
-    public static class MonadTester
+    public static class MonadTest
     {
         public static void TestMonadType<M>(IMonadBuilder<int, M> builder) where M : IMonad<int>
         {

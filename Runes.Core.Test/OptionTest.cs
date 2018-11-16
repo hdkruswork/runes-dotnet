@@ -6,7 +6,7 @@ namespace Runes.Core.Test
     public class OptionTest
     {
         [TestMethod]
-        public void Test_option_type_is_a_monad() => MonadTester.TestMonadType(Option<int>.Builder);
+        public void Test_option_type_is_a_monad() => MonadTest.TestMonadType(Option<int>.Builder);
 
         [TestMethod]
         public void Test_from_null() => Assert.AreEqual(Option.None<string>(), Option.From<string>(null));

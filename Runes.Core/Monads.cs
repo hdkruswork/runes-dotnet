@@ -68,8 +68,8 @@ namespace Runes
             }
         }
 
-        public override IStream<A> ToStream() =>
-            GetIfPresent(out A item) ? Stream.From(item) : Stream.Empty<A>();
+        public override Stream<A> ToStream() =>
+            GetIfPresent(out A item) ? Stream.Of(item) : Stream.Empty<A>();
 
         // Protected members
 

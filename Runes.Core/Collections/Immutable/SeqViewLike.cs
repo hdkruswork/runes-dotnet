@@ -168,8 +168,8 @@ namespace Runes.Collections.Immutable
 
         public virtual Repr TakeWhileNot(Func<A, bool> p) => TakeWhile(p, false);
 
-        public override IStream<A> ToStream() =>
-            GetHeadIfPresent(out A head) ? Stream.From(head, Lazy.From(() => Tail.ToStream())) : Stream.Empty<A>();
+        public override Stream<A> ToStream() =>
+            GetHeadIfPresent(out A head) ? Stream.Of(head, Lazy.From(() => Tail.ToStream())) : Stream.Empty<A>();
 
         // Protected members
 

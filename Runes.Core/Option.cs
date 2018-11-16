@@ -97,6 +97,8 @@ namespace Runes
 
         public override string ToString() => $"Some({Value})";
 
+        public void Deconstruct(out A value) => value = Value;
+
         internal Some(A value)
         {
             Value = value;
