@@ -53,7 +53,7 @@ namespace Runes
         public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E: Exception =>
             GetIfFailure(out E ex) ? recoverFunc(ex) : this;
         public Option<A> ToOption() => GetIfSuccess(out A result) ? Option.Some(result) : Option.None<A>();
-        public override IStream<A> ToStream() => GetIfSuccess(out A res) ? Stream.From(res) : Stream.Empty<A>();
+        public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream.From(res) : Stream.Empty<A>();
         public Try<B> Transform<B>(Func<A, Try<B>> successTranformation, Func<Exception, Try<B>> failureTransformation)
         {
             switch (this)

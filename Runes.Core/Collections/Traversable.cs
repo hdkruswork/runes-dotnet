@@ -33,7 +33,7 @@ namespace Runes.Collections
 
         Immutable.List<A> ToList();
 
-        IStream<A> ToStream();
+        Stream<A> ToStream();
     }
 
     public abstract class Traversable<A> : ITraversable<A>
@@ -57,7 +57,7 @@ namespace Runes.Collections
 
         public virtual Immutable.List<A> ToList() => FoldLeft(Immutable.List<A>.Builder, (bf, it) => bf.Append(it)).Result();
 
-        public abstract IStream<A> ToStream();
+        public abstract Stream<A> ToStream();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
