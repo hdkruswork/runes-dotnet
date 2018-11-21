@@ -4,8 +4,8 @@ namespace Runes
 {
     public static class Option
     {
-        public static Option<A> From<A>(A value) where A: class => value != null ? Some(value) : None<A>();
-        public static Option<A> From<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();
+        public static Option<A> Of<A>(A value) where A: class => value != null ? Some(value) : None<A>();
+        public static Option<A> Of<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();
 
         public static Option<A> None<A>() => Option<A>.None;
         public static Some<A> Some<A>(A value) => new Some<A>(value);

@@ -49,6 +49,6 @@ namespace Runes
 
     public static class Lazy
     {
-        public static Lazy<A> From<A>(Func<A> get) => new Lazy<A>(get);
+        public static Lazy<A> Of<A>(Func<A> get) => new Lazy<A>(get);
     }
 }

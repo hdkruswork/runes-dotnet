@@ -8,7 +8,7 @@ namespace Runes.Collections.Immutable
     {
         public static Stream<A> Empty<A>() => Stream<A>.Empty;
 
-        public static Stream<int> From(int head) => Of(head, Lazy.From(() => From(head + 1)));
+        public static Stream<int> From(int head) => Of(head, Lazy.Of(() => From(head + 1)));
 
         public static Stream<A> Of<A>(A head, Lazy<Stream<A>> tail) => new ConsStream<A>(head, tail);
 
@@ -20,7 +20,7 @@ namespace Runes.Collections.Immutable
         {
             Stream<A> fromIterator(IEnumerator<A> iter) =>
                 iter.MoveNext()
-                    ? Of(iter.Current, Lazy.From(() => fromIterator(iter)))
+                    ? Of(iter.Current, Lazy.Of(() => fromIterator(iter)))
                     : Empty<A>();
 
             return fromIterator(e.GetEnumerator());
@@ -59,14 +59,14 @@ namespace Runes.Collections.Immutable
 
         public Stream<A> Append(A rear) =>
             HeadOption
-                .Map(head => Stream.Of(head, Lazy.From(() => Tail.Append(rear))))
+                .Map(head => Stream.Of(head, Lazy.Of(() => Tail.Append(rear))))
                 .GetOrElse(Stream.Of(rear));
 
         public Stream<A> Append(IEnumerable<A> e) => Append(e is Stream<A> stream ? stream : Stream.Of(e));
 
         public Stream<A> Append(Stream<A> other) =>
             HeadOption
-                .Map(head => Stream.Of(head, Lazy.From(() => Tail.Append(other))))
+                .Map(head => Stream.Of(head, Lazy.Of(() => Tail.Append(other))))
                 .GetOrElse(other);
 
         public Stream<B> Collect<B>(IPartialFunction<A, B> pf) =>
@@ -90,7 +90,7 @@ namespace Runes.Collections.Immutable
         public Stream<A> Drops(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream.Of(head, Lazy.From(() => Tail.Drops(count -1))))
+                    .Map(head => Stream.Of(head, Lazy.Of(() => Tail.Drops(count -1))))
                     .GetOrElse(Stream.Empty<A>())
                 : Stream.Empty<A>();
 
@@ -157,7 +157,7 @@ namespace Runes.Collections.Immutable
 
         public Stream<B> Map<B>(Func<A, B> f) =>
             HeadOption
-                .Map(head => Stream.Of(f(head), Lazy.From(() => Tail.Map(f))))
+                .Map(head => Stream.Of(f(head), Lazy.Of(() => Tail.Map(f))))
                 .GetOrElse(Stream.Empty<B>());
 
         public Stream<A> Prepend(A e) => Stream.Of(e, this);
@@ -175,7 +175,7 @@ namespace Runes.Collections.Immutable
         public Stream<A> Take(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream.Of(head, Lazy.From(() => Tail.Take(count - 1))))
+                    .Map(head => Stream.Of(head, Lazy.Of(() => Tail.Take(count - 1))))
                     .GetOrElse(Stream.Empty<A>())
                 : Stream.Empty<A>();
 
@@ -189,12 +189,12 @@ namespace Runes.Collections.Immutable
 
         public Stream<(A, B)> Zip<B>(Stream<B> other) =>
             HeadOption.GetIfPresent(out A headA) && other.HeadOption.GetIfPresent(out B headB)
-                ? Stream.Of((headA, headB), Lazy.From(() => Tail.Zip(other.Tail)))
+                ? Stream.Of((headA, headB), Lazy.Of(() => Tail.Zip(other.Tail)))
                 : Stream.Empty<(A, B)>();
 
         public Stream<(A, int)> ZipWithIndex() =>
             HeadOption.GetIfPresent(out A head)
-                ? Stream.Of((head, 0), Lazy.From(() => Tail.ZipWithIndex()))
+                ? Stream.Of((head, 0), Lazy.Of(() => Tail.ZipWithIndex()))
                 : Stream.Empty<(A, int)>();
 
         private protected Stream() { }
@@ -211,7 +211,7 @@ namespace Runes.Collections.Immutable
 
             return curr
                 .HeadOption
-                .Map(head => Stream.Of(head, Lazy.From(() => Filter(curr, p, isTruthly))))
+                .Map(head => Stream.Of(head, Lazy.Of(() => Filter(curr, p, isTruthly))))
                 .GetOrElse(Stream.Empty<A>());
         }
 
@@ -229,7 +229,7 @@ namespace Runes.Collections.Immutable
 
         private Stream<A> TakeWhile(Stream<A> stream, Func<A, bool> p, bool isTruthly) =>
             stream.HeadOption.GetIfPresent(out A head) && p(head) == isTruthly
-                ? Stream.Of(head, Lazy.From(() => TakeWhile(stream.Tail, p, isTruthly)))
+                ? Stream.Of(head, Lazy.Of(() => TakeWhile(stream.Tail, p, isTruthly)))
                 : Stream.Empty<A>();
     }
 

@@ -170,7 +170,7 @@ namespace Runes
                 return Failure<A>(ex);
             }
         }
-        public static Try<A> Try<A>(Func<A> func) => Try(Lazy.From(func));
+        public static Try<A> Try<A>(Func<A> func) => Try(Lazy.Of(func));
 
         public static bool IsFailure<A, E>(Func<A> func, out E ex) where E: Exception => Try(func).GetIfFailure(out ex);
         public static bool IsSuccess<A>(Func<A> func, out A result) => Try(func).GetIfSuccess(out result);

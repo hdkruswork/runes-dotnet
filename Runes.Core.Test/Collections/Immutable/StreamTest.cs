@@ -9,7 +9,7 @@ namespace Runes.Core.Test.Collections.Immutable
         [TestMethod]
         public void TestFibonacci()
         {
-            Stream<int> fibonacci() => Stream.Of(0, 1, Lazy.From(
+            Stream<int> fibonacci() => Stream.Of(0, 1, Lazy.Of(
                 () => fibonacci().Zip(fibonacci().Tail).Map(p => p.Item1 + p.Item2)
             ));
             var fibStream = fibonacci();
@@ -23,7 +23,7 @@ namespace Runes.Core.Test.Collections.Immutable
         [TestMethod]
         public void TestFactorial()
         {
-            Stream<int> factorial() => Stream.Of(1, Lazy.From(
+            Stream<int> factorial() => Stream.Of(1, Lazy.Of(
                 () => factorial().Zip(Stream.From(1)).Map(p => p.Item1 * p.Item2)
             ));
 

@@ -9,16 +9,16 @@ namespace Runes.Core.Test
         public void Test_option_type_is_a_monad() => MonadTest.TestMonadType(Option<int>.Builder);
 
         [TestMethod]
-        public void Test_from_null() => Assert.AreEqual(Option.None<string>(), Option.From<string>(null));
+        public void Test_from_null() => Assert.AreEqual(Option.None<string>(), Option.Of<string>(null));
 
         [TestMethod]
-        public void Test_from_not_null() => Assert.AreEqual(Option.Some(""), Option.From(""));
+        public void Test_from_not_null() => Assert.AreEqual(Option.Some(""), Option.Of(""));
 
         [TestMethod]
-        public void Test_from_null_Nullable() => Assert.AreEqual(Option.None<int>(), Option.From(default(int?)));
+        public void Test_from_null_Nullable() => Assert.AreEqual(Option.None<int>(), Option.Of(default(int?)));
 
         [TestMethod]
-        public void Test_from_not_null_Nullable() => Assert.AreEqual(Option.Some(10), Option.From((int?)10));
+        public void Test_from_not_null_Nullable() => Assert.AreEqual(Option.Some(10), Option.Of((int?)10));
 
         [TestMethod]
         public void Test_None()

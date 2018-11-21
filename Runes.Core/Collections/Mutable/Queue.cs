@@ -82,7 +82,7 @@ namespace Runes.Collections.Mutable
         private QueueNode Head { get; set; }
         private QueueNode Rear { get; set; }
 
-        private Option<A> InnerPeek() => Option.From(Head.Next).Map(n => n.Info);
+        private Option<A> InnerPeek() => Option.Of(Head.Next).Map(n => n.Info);
 
         private class QueueNode
         {
