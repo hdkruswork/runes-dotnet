@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static Runes.OptionExtensions;
+
 namespace Runes.Collections.Immutable
 {
     public static class List
@@ -65,7 +67,7 @@ namespace Runes.Collections.Immutable
 
     public sealed class EmptyList<A> : List<A>
     {
-        public override Option<A> HeadOption => Option.None<A>();
+        public override Option<A> HeadOption => None<A>();
 
         public override List<A> Tail => this;
 
@@ -84,7 +86,7 @@ namespace Runes.Collections.Immutable
 
         public A Head { get; }
 
-        public override Option<A> HeadOption => Option.Some(Head);
+        public override Option<A> HeadOption => Some(Head);
         public override List<A> Tail { get; }
 
         public override string ToString() =>

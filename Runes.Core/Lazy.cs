@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static Runes.OptionExtensions;
+
 namespace Runes
 {
     public sealed class Lazy<A>
@@ -11,11 +13,11 @@ namespace Runes
 
         public A Get() => GetIfNotComputed().GetOrElse(value);
 
-        public Option<A> GetIfComputed() => IsComputed ? Option.Some(value) : Option<A>.None;
+        public Option<A> GetIfComputed() => IsComputed ? Some(value) : Option<A>.None;
 
         public Option<A> GetIfNotComputed()
         {
-            Option<A> res = Option.None<A>();
+            Option<A> res = None<A>();
             if (!IsComputed)
             {
                 lock(this)
@@ -24,7 +26,7 @@ namespace Runes
                     {
                         value = getValueFunc();
                         IsComputed = true;
-                        res = Option.Some(value);
+                        res = Some(value);
                     }
                 }
             }
@@ -47,8 +49,8 @@ namespace Runes
         private readonly Func<A> getValueFunc;
     }
 
-    public static class Lazy
+    public static class LazyExtensions
     {
-        public static Lazy<A> Of<A>(Func<A> get) => new Lazy<A>(get);
+        public static Lazy<A> Lazy<A>(Func<A> get) => new Lazy<A>(get);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static Runes.TryExtensions;
+
 namespace Runes
 {
     public interface IPartialFunction<in I, out O>
@@ -30,6 +32,6 @@ namespace Runes
             new PartialFunction<I, O>(applyFunc, isDefinedAtFunc);
 
         public static IPartialFunction<I, O> From<I, O>(Func<I, O> applyFunc) =>
-            From(applyFunc, i => Code.Try(() => applyFunc(i)).IsSuccess);
+            From(applyFunc, i => Try(() => applyFunc(i)).IsSuccess);
     }
 }

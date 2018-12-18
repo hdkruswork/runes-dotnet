@@ -1,13 +1,13 @@
 ﻿using Runes.Collections.Immutable;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+
+using Mutables = System.Collections;
 
 namespace Runes.Collections
 {
     public static class Traversable
     {
-        public static ITraversable<A> ToTraversable<A>(this IEnumerable<A> e)
+        public static ITraversable<A> ToTraversable<A>(this Mutables.Generic.IEnumerable<A> e)
         {
             if (e is Immutable.List<A> list)
                 return list;
@@ -21,7 +21,7 @@ namespace Runes.Collections
         }
     }
 
-    public interface ITraversable<A>: IEnumerable<A>
+    public interface ITraversable<A>: Mutables.Generic.IEnumerable<A>
     {
         That FoldLeft<That>(That initialValue, Func<That, A, That> f);
 
@@ -53,12 +53,20 @@ namespace Runes.Collections
         public abstract Unit Foreach(Action<A> action);
         public abstract Unit ForeachWhile(Func<A, bool> p, Action<A> action);
 
-        public abstract IEnumerator<A> GetEnumerator();
+        public abstract Mutables.Generic.IEnumerator<A> GetEnumerator();
 
-        public virtual Immutable.List<A> ToList() => FoldLeft(Immutable.List<A>.Builder, (bf, it) => bf.Append(it)).Result();
+        public virtual List<A> ToList() => FoldLeft(List<A>.Builder, (bf, it) => bf.Append(it)).Result();
+
+        public virtual A[] ToArray()
+        {
+
+            var builder = new Mutables.Generic.List<A>();
+            Foreach(it => builder.Add(it));
+            return builder.ToArray();
+        }
 
         public abstract Stream<A> ToStream();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        Mutables.IEnumerator Mutables.IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

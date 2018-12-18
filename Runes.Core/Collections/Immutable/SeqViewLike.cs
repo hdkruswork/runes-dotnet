@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using static Runes.OptionExtensions;
+using static Runes.LazyExtensions;
+using static Runes.TryExtensions;
+
 namespace Runes.Collections.Immutable
 {
     public interface ISeqViewLike<A, Repr> : ITraversable<A> where Repr: ISeqViewLike<A, Repr>
@@ -51,13 +55,13 @@ namespace Runes.Collections.Immutable
         {
             foreach (var item in this)
             {
-                if (Code.IsSuccess(() => pf.Apply(item), out B res))
+                if (IsSuccess(() => pf.Apply(item), out B res))
                 {
-                    return Option.Some(res);
+                    return Some(res);
                 }
             }
 
-            return Option.None<B>();
+            return None<B>();
         }
 
         public virtual bool Correspond<B, That>(That other, Func<A, B, bool> p) where That : ISeqViewLike<B, That>
@@ -169,7 +173,7 @@ namespace Runes.Collections.Immutable
         public virtual Repr TakeWhileNot(Func<A, bool> p) => TakeWhile(p, false);
 
         public override Stream<A> ToStream() =>
-            GetHeadIfPresent(out A head) ? Stream.Of(head, Lazy.Of(() => Tail.ToStream())) : Stream.Empty<A>();
+            GetHeadIfPresent(out A head) ? Stream.Of(head, Lazy(() => Tail.ToStream())) : Stream.Empty<A>();
 
         // Protected members
 
@@ -183,7 +187,7 @@ namespace Runes.Collections.Immutable
             var bf = builder;
             foreach (var item in this)
             {
-                var tryRes = Code.Try(() => pf.Apply(item));
+                var tryRes = Try(() => pf.Apply(item));
                 if (tryRes.GetIfSuccess(out B res))
                 {
                     bf.Append(res);

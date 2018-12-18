@@ -1,13 +1,15 @@
 ﻿using System;
 
+using static Runes.OptionExtensions;
+
 namespace Runes
 {
-    public static class Option
+    public static class OptionExtensions
     {
-        public static Option<A> Of<A>(A value) where A: class => value != null ? Some(value) : None<A>();
-        public static Option<A> Of<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();
+        public static Option<A> Option<A>(A value) where A: class => value != null ? Some(value) : None<A>();
+        public static Option<A> Option<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();
 
-        public static Option<A> None<A>() => Option<A>.None;
+        public static Option<A> None<A>() => Runes.Option<A>.None;
         public static Some<A> Some<A>(A value) => new Some<A>(value);
     }
 
@@ -51,9 +53,9 @@ namespace Runes
         {
             public static readonly OptionBuilder Object = new OptionBuilder();
 
-            public override Option<A> BuildFrom(A value) => Option.Some(value);
+            public override Option<A> BuildFrom(A value) => Some(value);
 
-            public override Option<A> Empty() => Option.None<A>();
+            public override Option<A> Empty() => None<A>();
 
             public override Option<A> TransformFrom(IMonad<A> other) =>
                 other is Option<A> option ? option : base.TransformFrom(other);

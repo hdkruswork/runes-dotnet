@@ -1,4 +1,6 @@
-﻿namespace Runes.Collections.Immutable
+﻿using static Runes.OptionExtensions;
+
+namespace Runes.Collections.Immutable
 {
     public interface ICollectionBuilder<A, CC>: IBuilder<A, CC> where CC: ITraversable<A>
     {
@@ -39,13 +41,13 @@
 
         protected CollectionBuilder(A rear, CollectionBuilder<A, CC> init)
         {
-            RearOption = Option.Some(rear);
+            RearOption = Some(rear);
             Init = init;
         }
 
         private protected CollectionBuilder()
         {
-            RearOption = Option.None<A>();
+            RearOption = None<A>();
             Init = this;
         }
 

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Runes.Collections.Immutable;
+
+using static Runes.OptionExtensions;
 
 namespace Runes.Collections.Mutable
 {
@@ -82,7 +83,7 @@ namespace Runes.Collections.Mutable
         private QueueNode Head { get; set; }
         private QueueNode Rear { get; set; }
 
-        private Option<A> InnerPeek() => Option.Of(Head.Next).Map(n => n.Info);
+        private Option<A> InnerPeek() => Option(Head.Next).Map(n => n.Info);
 
         private class QueueNode
         {

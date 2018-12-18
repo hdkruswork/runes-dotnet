@@ -1,5 +1,7 @@
 ﻿using System;
 
+using static Runes.OptionExtensions;
+
 namespace Runes.Collections.Immutable
 {
     public static class Seq
@@ -55,7 +57,7 @@ namespace Runes.Collections.Immutable
     {
         internal EmptySeq() { }
 
-        public override Option<A> HeadOption => Option.None<A>();
+        public override Option<A> HeadOption => None<A>();
 
         public override Seq<A> Tail => this;
     }
@@ -70,7 +72,7 @@ namespace Runes.Collections.Immutable
 
         public A Head { get; }
 
-        public override Option<A> HeadOption => Option.Some(Head);
+        public override Option<A> HeadOption => Some(Head);
         public override Seq<A> Tail { get; }
     }
 }

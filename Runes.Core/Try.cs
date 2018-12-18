@@ -3,6 +3,10 @@ using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
 
+using static Runes.OptionExtensions;
+using static Runes.LazyExtensions;
+using static Runes.TryExtensions;
+
 namespace Runes
 {
     public abstract class Try<A> : Traversable<A>
@@ -18,7 +22,7 @@ namespace Runes
                     return f(succ.Result);
 
                 case Failure<A> fail:
-                    return Code.Failure<B>(fail.Exception);
+                    return Failure<B>(fail.Exception);
 
                 default:
                     throw new CodeNeverShouldBeReachedException();
@@ -49,10 +53,10 @@ namespace Runes
         public Try<A> OrElse(Try<A> alternative) => IsSuccess ? this : alternative;
         public Try<A> OrElse(Lazy<Try<A>> alternative) => IsSuccess ? this : alternative;
         public Try<A> RecoverWith<E>(Func<E, A> recoverFunc) where E: Exception =>
-            GetIfFailure(out E ex) ? Code.Try(() => recoverFunc(ex)) : this;
+            GetIfFailure(out E ex) ? Try(() => recoverFunc(ex)) : this;
         public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E: Exception =>
             GetIfFailure(out E ex) ? recoverFunc(ex) : this;
-        public Option<A> ToOption() => GetIfSuccess(out A result) ? Option.Some(result) : Option.None<A>();
+        public Option<A> ToOption() => GetIfSuccess(out A result) ? Some(result) : None<A>();
         public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream.Of(res) : Stream.Empty<A>();
         public Try<B> Transform<B>(Func<A, Try<B>> successTranformation, Func<Exception, Try<B>> failureTransformation)
         {
@@ -84,7 +88,7 @@ namespace Runes
             }
             catch(Exception ex)
             {
-                return Code.Failure<B>(ex);
+                return Failure<B>(ex);
             }
         }
 
@@ -100,7 +104,7 @@ namespace Runes
             return false;
         }
 
-        public override Try<B> Map<B>(Func<A, B> f) => Code.Try(() => f(Result));
+        public override Try<B> Map<B>(Func<A, B> f) => Try(() => f(Result));
 
         public override string ToString()
         {
@@ -122,7 +126,7 @@ namespace Runes
     {
         public Exception Exception { get; }
 
-        public Failure<B> As<B>() => Code.Failure<B>(Exception);
+        public Failure<B> As<B>() => Failure<B>(Exception);
 
         public override Try<B> FlatMap<B>(Func<A, Try<B>> f) => As<B>();
 
@@ -156,8 +160,9 @@ namespace Runes
         }
     }
 
-    public static class Code
+    public static class TryExtensions
     {
+        public static Try<Unit> Try(Action action) => Try(() => Unit.Of(action));
         public static Try<A> Try<A>(Lazy<A> lazy)
         {
             try
@@ -170,7 +175,7 @@ namespace Runes
                 return Failure<A>(ex);
             }
         }
-        public static Try<A> Try<A>(Func<A> func) => Try(Lazy.Of(func));
+        public static Try<A> Try<A>(Func<A> func) => Try(Lazy(func));
 
         public static bool IsFailure<A, E>(Func<A> func, out E ex) where E: Exception => Try(func).GetIfFailure(out ex);
         public static bool IsSuccess<A>(Func<A> func, out A result) => Try(func).GetIfSuccess(out result);
