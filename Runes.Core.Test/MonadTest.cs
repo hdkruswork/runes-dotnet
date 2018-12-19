@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Runes.Core.Test
+namespace Runes.Test
 {
     public static class MonadTest
     {

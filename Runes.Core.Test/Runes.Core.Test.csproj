@@ -10,6 +10,8 @@
     <IsPackable>false</IsPackable>
 
     <LangVersion>latest</LangVersion>
+
+    <RootNamespace>Runes</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

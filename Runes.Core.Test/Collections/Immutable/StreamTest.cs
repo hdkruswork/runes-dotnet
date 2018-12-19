@@ -1,9 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Runes.Collections.Immutable;
 
 using static Runes.LazyExtensions;
 
-namespace Runes.Core.Test.Collections.Immutable
+namespace Runes.Collections.Immutable.Test
 {
     [TestClass]
     public class StreamTest

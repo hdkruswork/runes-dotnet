@@ -42,6 +42,9 @@ namespace Runes.Collections.Immutable
 
         public static Stream<A> Of<A>(A a1, A a2, Lazy<Stream<A>> tail) => Of(a1).Append(Of(a2, tail));
 
+        public static Stream<A> Of<A>(Stream<A> stream, Action disposeAction) =>
+            new DisposableStream<A>(stream, disposeAction);
+
         public static Stream<A> Flatten<A, That>(this Stream<That> stream) where That: Traversable<A> => 
             stream
                 .HeadOption
@@ -309,5 +312,28 @@ namespace Runes.Collections.Immutable
 
         protected internal override string ToInternalString() =>
             $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
+    }
+
+    public sealed class DisposableStream<A> : Stream<A>, IDisposable
+    {
+        private readonly Stream<A> innerStream;
+        private readonly Action disposeAction;
+
+        internal DisposableStream(Stream<A> innerStream, Action disposeAction)
+        {
+            this.innerStream = innerStream;
+            this.disposeAction = disposeAction;
+        }
+
+        public override Option<A> HeadOption => innerStream.HeadOption;
+
+        public override Stream<A> Tail => innerStream.Tail;
+
+        public void Dispose()
+        {
+            disposeAction();
+        }
+
+        protected internal override string ToInternalString() => innerStream.ToInternalString();
     }
 }

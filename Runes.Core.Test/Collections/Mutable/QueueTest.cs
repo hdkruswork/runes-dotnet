@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Runes.Collections.Mutable;
 
-namespace Runes.Core.Test.Collections.Mutable
+namespace Runes.Collections.Mutable.Test
 {
     [TestClass]
     public class QueueTest

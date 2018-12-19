@@ -2,7 +2,7 @@
 
 using static Runes.OptionExtensions;
 
-namespace Runes.Core.Test
+namespace Runes.Test
 {
     [TestClass]
     public class OptionTest
