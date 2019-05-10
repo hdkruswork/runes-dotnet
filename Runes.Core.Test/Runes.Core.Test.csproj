@@ -5,13 +5,10 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>false</IsPackable>
-
-    <LangVersion>latest</LangVersion>
-
     <RootNamespace>Runes</RootNamespace>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
