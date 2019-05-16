@@ -1,6 +1,8 @@
 ﻿using Runes.Collections.Immutable;
 using System.Text;
 
+using static Runes.Collections.Immutable.Streams;
+
 namespace Runes.Text
 {
     public sealed class HexDecoder : ITextDecoder<byte[]>
@@ -16,7 +18,7 @@ namespace Runes.Text
 
         public string Decode(byte[] data)
         {
-            var str = Stream.Of(data)
+            var str = Stream(data)
                 .Map(b =>
                 {
                     var hiChar = HexAlphabet.Chars[b >> 0x04];

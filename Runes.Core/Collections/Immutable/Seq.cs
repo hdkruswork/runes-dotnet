@@ -1,6 +1,6 @@
 ﻿using System;
 
-using static Runes.OptionExtensions;
+using static Runes.Options;
 
 namespace Runes.Collections.Immutable
 {

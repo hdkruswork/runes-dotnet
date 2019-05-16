@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using static Runes.OptionExtensions;
-using static Runes.LazyExtensions;
-using static Runes.TryExtensions;
+using static Runes.Collections.Immutable.Streams;
+using static Runes.Options;
+using static Runes.Units;
+using static Runes.Lazies;
+using static Runes.Tries;
 
 namespace Runes.Collections.Immutable
 {
@@ -119,7 +121,7 @@ namespace Runes.Collections.Immutable
             return true;
         }
 
-        public override Unit Foreach(Action<A> action) => Unit.Of(() =>
+        public override Unit Foreach(Action<A> action) => Unit(() =>
         {
             var curr = this;
             while (curr.GetHeadIfPresent(out A item))
@@ -129,7 +131,7 @@ namespace Runes.Collections.Immutable
             }
         });
 
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit.Of(() =>
+        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
             var curr = this;
             while (curr.GetHeadIfPresent(out A item) && p(item))
@@ -173,7 +175,7 @@ namespace Runes.Collections.Immutable
         public virtual Repr TakeWhileNot(Func<A, bool> p) => TakeWhile(p, false);
 
         public override Stream<A> ToStream() =>
-            GetHeadIfPresent(out A head) ? Stream.Of(head, Lazy(() => Tail.ToStream())) : Stream.Empty<A>();
+            GetHeadIfPresent(out A head) ? Stream(head, Lazy(() => Tail.ToStream())) : Empty<A>();
 
         // Protected members
 

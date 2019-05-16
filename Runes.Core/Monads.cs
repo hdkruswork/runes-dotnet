@@ -3,6 +3,9 @@ using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
 
+using static Runes.Collections.Immutable.Streams;
+using static Runes.Units;
+
 namespace Runes
 {
     public interface IMonad<A> : ITraversable<A>
@@ -44,7 +47,7 @@ namespace Runes
 
         public abstract bool GetIfPresent(out A value);
 
-        public override Unit Foreach(Action<A> action) => Unit.Of(() =>
+        public override Unit Foreach(Action<A> action) => Unit(() =>
         {
             if (GetIfPresent(out A item))
             {
@@ -52,7 +55,7 @@ namespace Runes
             }
         });
 
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit.Of(() =>
+        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
             if (GetIfPresent(out A item) && p(item))
             {
@@ -69,7 +72,7 @@ namespace Runes
         }
 
         public override Stream<A> ToStream() =>
-            GetIfPresent(out A item) ? Stream.Of(item) : Stream.Empty<A>();
+            GetIfPresent(out A item) ? Stream(item) : Streams.Empty<A>();
 
         // Protected members
 

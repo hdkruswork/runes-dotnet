@@ -3,9 +3,11 @@ using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
 
-using static Runes.OptionExtensions;
-using static Runes.LazyExtensions;
-using static Runes.TryExtensions;
+using static Runes.Collections.Immutable.Streams;
+using static Runes.Options;
+using static Runes.Lazies;
+using static Runes.Tries;
+using static Runes.Units;
 
 namespace Runes
 {
@@ -29,12 +31,12 @@ namespace Runes
             }
         }
         public abstract Try<B> FlatMap<B>(Func<A, Try<B>> f);
-        public override Unit Foreach(Action<A> action) => Unit.Of(() =>
+        public override Unit Foreach(Action<A> action) => Unit(() =>
         {
             if(GetIfSuccess(out A value))
                 action(value);
         });
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit.Of(() =>
+        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
             if(GetIfSuccess(out A value) && p(value))
                 action(value);
@@ -57,7 +59,7 @@ namespace Runes
         public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E: Exception =>
             GetIfFailure(out E ex) ? recoverFunc(ex) : this;
         public Option<A> ToOption() => GetIfSuccess(out A result) ? Some(result) : None<A>();
-        public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream.Of(res) : Stream.Empty<A>();
+        public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream(res) : Empty<A>();
         public Try<B> Transform<B>(Func<A, Try<B>> successTranformation, Func<Exception, Try<B>> failureTransformation)
         {
             switch (this)
@@ -160,9 +162,9 @@ namespace Runes
         }
     }
 
-    public static class TryExtensions
+    public static class Tries
     {
-        public static Try<Unit> Try(Action action) => Try(() => Unit.Of(action));
+        public static Try<Unit> Try(Action action) => Try(() => Unit(action));
         public static Try<A> Try<A>(Lazy<A> lazy)
         {
             try

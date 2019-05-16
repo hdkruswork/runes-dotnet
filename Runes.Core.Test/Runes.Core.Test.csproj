@@ -5,7 +5,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <RootNamespace>Runes</RootNamespace>
     <LangVersion>8.0</LangVersion>
@@ -18,9 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Runes.Core">
-      <HintPath>..\..\bin\netcoreapp2.1\Runes.Core.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Runes.Core\Runes.Core.csproj" />
   </ItemGroup>
 
 </Project>

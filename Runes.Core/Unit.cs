@@ -1,37 +1,32 @@
 ﻿using System;
+       
+using static Runes.Units;
 
 namespace Runes
 {
-    public sealed class Unit
+    public static class Units
     {
-        public static Unit Of(Action action)
-        {
-            action();
-            return Object;
-        }
-        public static Func<A1, Unit> Of<A1>(Action<A1> action) => new Func<A1, Unit>((a1) =>
-        {
-            action(a1);
-            return Object;
-        });
-        public static Func<A1, A2, Unit> Of<A1, A2>(Action<A1, A2> action) => new Func<A1, A2, Unit>((a1, a2) =>
-        {
-            action(a1, a2);
-            return Object;
-        });
-        public static Func<A1, A2, A3, Unit> Of<A1, A2, A3>(Action<A1, A2, A3> action) => new Func<A1, A2, A3, Unit>((a1, a2, a3) =>
-        {
-            action(a1, a2, a3);
-            return Object;
-        });
-
         private static readonly Unit Object = new Unit();
 
-        public override bool Equals(object obj) => obj == Object;
-        public override int GetHashCode() => 0;
+        public static Unit Unit() => Object;
+
+        public static Unit Unit(Action action)
+        {
+            action();
+            return Unit();
+        }
+    }
+
+    public sealed class Unit
+    {
+        public static implicit operator Unit(Action action) => Unit(action);
+
+        public override bool Equals(object obj) => obj == Unit();
+
+        public override int GetHashCode() => 1;
 
         public override string ToString() => string.Empty;
 
-        private Unit() { }
+        internal Unit() { }
     }
 }

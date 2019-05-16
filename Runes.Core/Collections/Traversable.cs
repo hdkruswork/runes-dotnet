@@ -2,6 +2,7 @@
 using System;
 
 using Mutables = System.Collections;
+using static Runes.Collections.Immutable.Arrays;
 
 namespace Runes.Collections
 {
@@ -21,7 +22,7 @@ namespace Runes.Collections
         }
     }
 
-    public interface ITraversable<A>: Mutables.Generic.IEnumerable<A>
+    public interface ITraversable<A> : Mutables.Generic.IEnumerable<A>
     {
         That FoldLeft<That>(That initialValue, Func<That, A, That> f);
 
@@ -31,7 +32,9 @@ namespace Runes.Collections
 
         Unit ForeachWhile(Func<A, bool> p, Action<A> action);
 
-        Immutable.List<A> ToList();
+        List<A> ToList();
+
+        A[] ToArray();
 
         Stream<A> ToStream();
     }
@@ -55,15 +58,16 @@ namespace Runes.Collections
 
         public abstract Mutables.Generic.IEnumerator<A> GetEnumerator();
 
-        public virtual List<A> ToList() => FoldLeft(List<A>.Builder, (bf, it) => bf.Append(it)).Result();
+        public virtual List<A> ToList() => FoldLeft(List<A>.Builder.NewBuilder(), (bf, it) => bf.Append(it)).Result();
 
         public virtual A[] ToArray()
         {
-
             var builder = new Mutables.Generic.List<A>();
             Foreach(it => builder.Add(it));
             return builder.ToArray();
         }
+
+        public Array<A> ToImmutableArray() => ImmutableArray(ToArray());
 
         public abstract Stream<A> ToStream();
 

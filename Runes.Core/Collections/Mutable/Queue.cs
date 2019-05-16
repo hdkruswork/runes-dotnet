@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using Runes.Collections.Immutable;
 
-using static Runes.OptionExtensions;
+using static Runes.Options;
+using static Runes.Units;
 
 namespace Runes.Collections.Mutable
 {
@@ -56,7 +57,7 @@ namespace Runes.Collections.Mutable
             }
         }
 
-        public override Unit Foreach(Action<A> action) => Unit.Of(() =>
+        public override Unit Foreach(Action<A> action) => Unit(() =>
         {
             var curr = Head.Next;
             while (curr != null)
@@ -66,7 +67,7 @@ namespace Runes.Collections.Mutable
             }
         });
 
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit.Of(() =>
+        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
             var curr = Head.Next;
             while (curr != null && p(curr.Info))

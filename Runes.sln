@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2048
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core", "Runes.Core\Runes.Core.csproj", "{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runes.Core.Test", "Runes.Core.Test\Runes.Core.Test.csproj", "{275908E1-DC80-47F4-96C9-4548BA1A482F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core.Test", "Runes.Core.Test\Runes.Core.Test.csproj", "{275908E1-DC80-47F4-96C9-4548BA1A482F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49} = {68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

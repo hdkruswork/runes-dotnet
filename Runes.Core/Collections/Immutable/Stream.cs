@@ -2,48 +2,40 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-using static Runes.OptionExtensions;
-using static Runes.LazyExtensions;
-using static Runes.TryExtensions;
+using static Runes.Collections.Immutable.Arrays;
+using static Runes.Collections.Immutable.Streams;
+using static Runes.Options;
+using static Runes.Lazies;
+using static Runes.Tries;
+using static Runes.Units;
 
 namespace Runes.Collections.Immutable
 {
-    public static class Stream
+    public static class Streams
     {
-        public static Stream<A> Empty<A>() => Stream<A>.Empty;
+        public static Stream<A> Empty<A>() => Immutable.Stream<A>.Empty;
 
-        public static Stream<int> From(int head) => Of(head, Lazy(() => From(head + 1)));
+        public static Stream<int> From(int head) => Stream(head, Lazy(() => From(head + 1)));
 
-        public static Stream<A> Of<A>(A head, Lazy<Stream<A>> tail) => new ConsStream<A>(head, tail);
+        public static Stream<A> Stream<A>(A head, Lazy<Stream<A>> tail) => new ConsStream<A>(head, tail);
 
-        public static Stream<A> Of<A>(A head, Stream<A> tail) => new FixedConsStream<A>(head, tail);
+        public static Stream<A> Stream<A>(A head, Stream<A> tail) => new FixedConsStream<A>(head, tail);
 
-        public static Stream<A> Of<A>(A head) => new FixedConsStream<A>(head, Empty<A>());
+        public static Stream<A> Stream<A>(A head) => new FixedConsStream<A>(head, Empty<A>());
 
-        public static Stream<A> Of<A>(IEnumerable<A> e)
+        public static Stream<A> Stream<A>(IEnumerable<A> e)
         {
             Stream<A> fromIterator(IEnumerator<A> iter) =>
                 iter.MoveNext()
-                    ? Of(iter.Current, Lazy(() => fromIterator(iter)))
+                    ? Stream(iter.Current, Lazy(() => fromIterator(iter)))
                     : Empty<A>();
 
             return fromIterator(e.GetEnumerator());
         }
 
-        public static Stream<A> Of<A>(params A[] array)
-        {
-            var res = Empty<A>();
-            for (int i = array.Length - 1; i >= 0; i--)
-            {
-                res = res.Prepend(array[i]);
-            }
-            return res;
-        }
+        public static Stream<A> Stream<A>(params A[] array) => ImmutableArray(array).ToStream();
 
-        public static Stream<A> Of<A>(A a1, A a2, Lazy<Stream<A>> tail) => Of(a1).Append(Of(a2, tail));
-
-        public static Stream<A> Of<A>(Stream<A> stream, Action disposeAction) =>
-            new DisposableStream<A>(stream, disposeAction);
+        public static Stream<A> Stream<A>(A a1, A a2, Lazy<Stream<A>> tail) => Stream(a1).Append(Stream(a2, tail));
 
         public static Stream<A> Flatten<A, That>(this Stream<That> stream) where That: Traversable<A> => 
             stream
@@ -51,7 +43,7 @@ namespace Runes.Collections.Immutable
                 .Map(trav => trav.ToStream().Append(stream.Tail.Flatten<A, That>()))
                 .GetOrElse(Empty<A>());
 
-        public static Stream<char> ToStream(this string str) => Of(str.ToCharArray());
+        public static Stream<char> ToStream(this string str) => Stream(str.ToCharArray());
     }
 
     public abstract class Stream<A> : Traversable<A>
@@ -68,14 +60,14 @@ namespace Runes.Collections.Immutable
 
         public Stream<A> Append(A rear) =>
             HeadOption
-                .Map(head => Stream.Of(head, Lazy(() => Tail.Append(rear))))
-                .GetOrElse(Stream.Of(rear));
+                .Map(head => Stream(head, Lazy(() => Tail.Append(rear))))
+                .GetOrElse(Stream(rear));
 
-        public Stream<A> Append(IEnumerable<A> e) => Append(e is Stream<A> stream ? stream : Stream.Of(e));
+        public Stream<A> Append(IEnumerable<A> e) => Append(e is Stream<A> stream ? stream : Stream(e));
 
         public Stream<A> Append(Stream<A> other) =>
             HeadOption
-                .Map(head => Stream.Of(head, Lazy(() => Tail.Append(other))))
+                .Map(head => Stream(head, Lazy(() => Tail.Append(other))))
                 .GetOrElse(other);
 
         public Stream<B> Collect<B>(IPartialFunction<A, B> pf) =>
@@ -101,9 +93,9 @@ namespace Runes.Collections.Immutable
         public Stream<A> Drops(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream.Of(head, Lazy(() => Tail.Drops(count -1))))
-                    .GetOrElse(Stream.Empty<A>())
-                : Stream.Empty<A>();
+                    .Map(head => Stream(head, Lazy(() => Tail.Drops(count -1))))
+                    .GetOrElse(Empty<A>())
+                : Empty<A>();
 
         public Stream<A> DropsWhile(Func<A, bool> p) => DropsWhile(p, out _);
 
@@ -122,7 +114,7 @@ namespace Runes.Collections.Immutable
         public Stream<B> FlatMap<B, That>(Func<A, That> f) where That : Traversable<B> =>
             HeadOption
                 .Map(head => f(head).ToStream().Append(Tail.FlatMap<B, That>(f)))
-                .GetOrElse(Stream.Empty<B>());
+                .GetOrElse(Empty<B>());
 
         public bool ForAll(Func<A, bool> p)
         {
@@ -134,7 +126,7 @@ namespace Runes.Collections.Immutable
             return curr.IsEmpty;
         }
 
-        public override Unit Foreach(Action<A> action) => Unit.Of(() =>
+        public override Unit Foreach(Action<A> action) => Unit(() =>
         {
             var curr = this;
             while (curr.GetHeadIfPresent(out A head))
@@ -144,7 +136,7 @@ namespace Runes.Collections.Immutable
             }
         });
 
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit.Of(() =>
+        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
             var curr = this;
             while (curr.GetHeadIfPresent(out A head) && p(head))
@@ -168,18 +160,18 @@ namespace Runes.Collections.Immutable
 
         public Stream<B> Map<B>(Func<A, B> f) =>
             HeadOption
-                .Map(head => Stream.Of(f(head), Lazy(() => Tail.Map(f))))
-                .GetOrElse(Stream.Empty<B>());
+                .Map(head => Stream(f(head), Lazy(() => Tail.Map(f))))
+                .GetOrElse(Empty<B>());
 
-        public Stream<A> Prepend(A e) => Stream.Of(e, this);
+        public Stream<A> Prepend(A e) => Stream(e, this);
 
         public Stream<A> Prepend(IEnumerable<A> e) =>
-            (e is Stream<A> stream ? stream : Stream.Of(e))
+            (e is Stream<A> stream ? stream : Stream(e))
                 .Append(this);
 
         public Stream<A> Prepend(Stream<A> other) => other.Append(this);
 
-        public Stream<A> Reverse() => FoldLeft(Stream.Empty<A>(), (acc, it) => acc.Prepend(it));
+        public Stream<A> Reverse() => FoldLeft(Empty<A>(), (acc, it) => acc.Prepend(it));
 
         public BigInteger Size() => FoldLeft(BigInteger.Zero, (sum, _) => sum + 1);
 
@@ -192,15 +184,15 @@ namespace Runes.Collections.Immutable
                 tail = tail.Tail;
             }
 
-            return Stream.Of(head, Lazy(() => tail.Sliding(size, step)));
+            return Stream(head, Lazy(() => tail.Sliding(size, step)));
         }
 
         public Stream<A> Take(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream.Of(head, Lazy(() => Tail.Take(count - 1))))
-                    .GetOrElse(Stream.Empty<A>())
-                : Stream.Empty<A>();
+                    .Map(head => Stream(head, Lazy(() => Tail.Take(count - 1))))
+                    .GetOrElse(Empty<A>())
+                : Empty<A>();
 
         public Stream<A> TakeWhile(Func<A, bool> p) => TakeWhile(this, p, true);
 
@@ -212,13 +204,13 @@ namespace Runes.Collections.Immutable
 
         public Stream<(A, B)> Zip<B>(Stream<B> other) =>
             HeadOption.GetIfPresent(out A headA) && other.HeadOption.GetIfPresent(out B headB)
-                ? Stream.Of((headA, headB), Lazy(() => Tail.Zip(other.Tail)))
-                : Stream.Empty<(A, B)>();
+                ? Stream((headA, headB), Lazy(() => Tail.Zip(other.Tail)))
+                : Empty<(A, B)>();
 
         public Stream<(A, int)> ZipWithIndex() =>
             HeadOption.GetIfPresent(out A head)
-                ? Stream.Of((head, 0), Lazy(() => Tail.ZipWithIndex()))
-                : Stream.Empty<(A, int)>();
+                ? Stream((head, 0), Lazy(() => Tail.ZipWithIndex()))
+                : Empty<(A, int)>();
 
         private protected Stream() { }
 
@@ -234,8 +226,8 @@ namespace Runes.Collections.Immutable
 
             return curr
                 .HeadOption
-                .Map(head => Stream.Of(head, Lazy(() => Filter(curr, p, isTruthly))))
-                .GetOrElse(Stream.Empty<A>());
+                .Map(head => Stream(head, Lazy(() => Filter(curr, p, isTruthly))))
+                .GetOrElse(Empty<A>());
         }
 
         private Stream<A> DropsWhile(Func<A, bool> p, bool isTruthly, out int skipped)
@@ -252,8 +244,8 @@ namespace Runes.Collections.Immutable
 
         private Stream<A> TakeWhile(Stream<A> stream, Func<A, bool> p, bool isTruthly) =>
             stream.HeadOption.GetIfPresent(out A head) && p(head) == isTruthly
-                ? Stream.Of(head, Lazy(() => TakeWhile(stream.Tail, p, isTruthly)))
-                : Stream.Empty<A>();
+                ? Stream(head, Lazy(() => TakeWhile(stream.Tail, p, isTruthly)))
+                : Empty<A>();
     }
 
     public abstract class NonEmptyStream<A> : Stream<A>
@@ -264,7 +256,7 @@ namespace Runes.Collections.Immutable
 
         private protected NonEmptyStream(A head) => Head = head;
 
-        public void Deconstruct(out A head, Stream<A> tail)
+        public void Deconstruct(out A head, out Stream<A> tail)
         {
             head = Head;
             tail = Tail;
@@ -276,7 +268,7 @@ namespace Runes.Collections.Immutable
         public override Option<A> HeadOption => None<A>();
         public override Stream<A> Tail => this;
 
-        public override Stream<A[]> Sliding(int size, int step) => Stream.Empty<A[]>();
+        public override Stream<A[]> Sliding(int size, int step) => Empty<A[]>();
 
         internal EmptyStream() { }
 
@@ -312,28 +304,5 @@ namespace Runes.Collections.Immutable
 
         protected internal override string ToInternalString() =>
             $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
-    }
-
-    public sealed class DisposableStream<A> : Stream<A>, IDisposable
-    {
-        private readonly Stream<A> innerStream;
-        private readonly Action disposeAction;
-
-        internal DisposableStream(Stream<A> innerStream, Action disposeAction)
-        {
-            this.innerStream = innerStream;
-            this.disposeAction = disposeAction;
-        }
-
-        public override Option<A> HeadOption => innerStream.HeadOption;
-
-        public override Stream<A> Tail => innerStream.Tail;
-
-        public void Dispose()
-        {
-            disposeAction();
-        }
-
-        protected internal override string ToInternalString() => innerStream.ToInternalString();
     }
 }

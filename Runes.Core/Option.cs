@@ -1,10 +1,10 @@
 ﻿using System;
 
-using static Runes.OptionExtensions;
+using static Runes.Options;
 
 namespace Runes
 {
-    public static class OptionExtensions
+    public static class Options
     {
         public static Option<A> Option<A>(A value) where A: class => value != null ? Some(value) : None<A>();
         public static Option<A> Option<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();

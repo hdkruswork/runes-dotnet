@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using static Runes.OptionExtensions;
+using static Runes.Options;
 
 namespace Runes.Test
 {

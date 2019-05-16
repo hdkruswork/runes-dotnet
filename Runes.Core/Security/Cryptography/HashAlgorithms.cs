@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-using static Runes.LazyExtensions;
+using static Runes.Lazies;
 
 namespace Runes.Security.Cryptography
 {
