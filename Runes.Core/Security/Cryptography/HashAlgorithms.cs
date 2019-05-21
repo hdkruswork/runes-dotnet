@@ -4,6 +4,13 @@ using static Runes.Lazies;
 
 namespace Runes.Security.Cryptography
 {
+    public static class Hashes
+    {
+        public static IHashAlgorithm Sha256() => Sha256Algorithm.Object;
+
+        public static byte[] Sha256(this byte[] data) => Sha256().Compute(data);
+    }
+
     public interface IHashAlgorithm
     {
         int HashSize { get; }

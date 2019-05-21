@@ -5,6 +5,17 @@ using static Runes.Collections.Immutable.Streams;
 
 namespace Runes.Text
 {
+    public static class Hex
+    {
+        public static HexDecoder HexDecoder() => Text.HexDecoder.Object;
+
+        public static HexEncoder HexEncoder() => Text.HexEncoder.Object;
+
+        public static byte[] FromHex(this string hex) => HexEncoder().Encode(hex);
+
+        public static string ToHex(this byte[] data) => HexDecoder().Decode(data);
+    }
+
     public sealed class HexDecoder : ITextDecoder<byte[]>
     {
         public static HexDecoder Object => new HexDecoder(TextCaseConstraint.LOWERCASED);

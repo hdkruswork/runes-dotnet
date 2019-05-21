@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using static Runes.Text.Hex;
+
 namespace Runes.Text.Test
 {
     [TestClass]
@@ -9,9 +11,7 @@ namespace Runes.Text.Test
         public void TestEncoding()
         {
             var hex = "23a43CfF00";
-            var bytes = HexEncoder
-                .Object
-                .Encode(hex);
+            var bytes = HexEncoder().Encode(hex);
 
             Assert.AreEqual(5, bytes.Length);
             Assert.AreEqual(0x23, bytes[0]);
