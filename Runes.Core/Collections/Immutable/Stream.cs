@@ -13,9 +13,9 @@ namespace Runes.Collections.Immutable
 {
     public static class Streams
     {
-        public static Stream<A> Empty<A>() => Immutable.Stream<A>.Empty;
+        public static Stream<A> Empty<A>() => EmptyStream<A>.Object;
 
-        public static Stream<int> From(int head) => Stream(head, Lazy(() => From(head + 1)));
+        public static Stream<int> StartStream(int head) => Stream(head, Lazy(() => StartStream(head + 1)));
 
         public static Stream<A> Stream<A>(A head, Lazy<Stream<A>> tail) => new ConsStream<A>(head, tail);
 
@@ -44,12 +44,72 @@ namespace Runes.Collections.Immutable
                 .GetOrElse(Empty<A>());
 
         public static Stream<char> ToStream(this string str) => Stream(str.ToCharArray());
+
+        // Private members
+
+        private sealed class FixedConsStream<A> : NonEmptyStream<A>
+        {
+            public override Stream<A> Tail { get; }
+
+            internal FixedConsStream(A head, Stream<A> tail) : base(head)
+            {
+                Tail = tail;
+            }
+
+            protected internal override string ToInternalString() =>
+                $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
+        }
+
+        private sealed class ConsStream<A> : NonEmptyStream<A>
+        {
+            public override Stream<A> Tail => lazyTail.Get();
+
+            protected internal override string ToInternalString() => $"{Head}, ...";
+
+            internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head)
+            {
+                lazyTail = tail;
+            }
+            internal ConsStream(A head, Func<Stream<A>> tail) : base(head)
+            {
+                lazyTail = tail;
+            }
+
+            private readonly Lazy<Stream<A>> lazyTail;
+        }
+
+        private sealed class EmptyStream<A> : Stream<A>
+        {
+            public static readonly EmptyStream<A> Object = new EmptyStream<A>();
+
+            public override Option<A> HeadOption => None<A>();
+            public override Stream<A> Tail => this;
+
+            public override Stream<A[]> Sliding(int size, int step) => Empty<A[]>();
+
+            private EmptyStream() { }
+
+            protected internal override string ToInternalString() => "";
+        }
+
+        private abstract class NonEmptyStream<A> : Stream<A>
+        {
+            public A Head { get; }
+
+            public override Option<A> HeadOption => Some(Head);
+
+            private protected NonEmptyStream(A head) => Head = head;
+
+            public void Deconstruct(out A head, out Stream<A> tail)
+            {
+                head = Head;
+                tail = Tail;
+            }
+        }
     }
 
     public abstract class Stream<A> : Traversable<A>
     {
-        internal static readonly EmptyStream<A> Empty = new EmptyStream<A>();
-
         public bool IsEmpty => HeadOption.IsEmpty;
 
         public bool NonEmpty  => HeadOption.NonEmpty;
@@ -207,10 +267,7 @@ namespace Runes.Collections.Immutable
                 ? Stream((headA, headB), Lazy(() => Tail.Zip(other.Tail)))
                 : Empty<(A, B)>();
 
-        public Stream<(A, int)> ZipWithIndex() =>
-            HeadOption.GetIfPresent(out A head)
-                ? Stream((head, 0), Lazy(() => Tail.ZipWithIndex()))
-                : Empty<(A, int)>();
+        public Stream<(A, int)> ZipWithIndex() => Zip(StartStream(0));
 
         private protected Stream() { }
 
@@ -246,63 +303,5 @@ namespace Runes.Collections.Immutable
             stream.HeadOption.GetIfPresent(out A head) && p(head) == isTruthly
                 ? Stream(head, Lazy(() => TakeWhile(stream.Tail, p, isTruthly)))
                 : Empty<A>();
-    }
-
-    public abstract class NonEmptyStream<A> : Stream<A>
-    {
-        public A Head { get; }
-
-        public override Option<A> HeadOption => Some(Head);
-
-        private protected NonEmptyStream(A head) => Head = head;
-
-        public void Deconstruct(out A head, out Stream<A> tail)
-        {
-            head = Head;
-            tail = Tail;
-        }
-    }
-
-    internal sealed class EmptyStream<A> : Stream<A>
-    {
-        public override Option<A> HeadOption => None<A>();
-        public override Stream<A> Tail => this;
-
-        public override Stream<A[]> Sliding(int size, int step) => Empty<A[]>();
-
-        internal EmptyStream() { }
-
-        protected internal override string ToInternalString() => "";
-    }
-
-    internal sealed class ConsStream<A> : NonEmptyStream<A>
-    {
-        public override Stream<A> Tail => lazyTail.Get();
-
-        protected internal override string ToInternalString() => $"{Head}, ...";
-
-        internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head)
-        {
-            lazyTail = tail;
-        }
-        internal ConsStream(A head, Func<Stream<A>> tail) : base(head)
-        {
-            lazyTail = tail;
-        }
-
-        private readonly Lazy<Stream<A>> lazyTail;
-    }
-
-    internal sealed class FixedConsStream<A> : NonEmptyStream<A>
-    {
-        public override Stream<A> Tail { get; }
-
-        internal FixedConsStream(A head, Stream<A> tail) : base(head)
-        {
-            Tail = tail;
-        }
-
-        protected internal override string ToInternalString() =>
-            $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
     }
 }

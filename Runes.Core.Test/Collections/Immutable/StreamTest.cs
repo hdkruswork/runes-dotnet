@@ -26,7 +26,7 @@ namespace Runes.Collections.Immutable.Test
         public void TestFactorial()
         {
             Stream<int> factorial() => Stream(1, Lazy(
-                () => factorial().Zip(Streams.From(1)).Map(p => p.Item1 * p.Item2)
+                () => factorial().Zip(Streams.StartStream(1)).Map(p => p.Item1 * p.Item2)
             ));
 
             var factStream = factorial();

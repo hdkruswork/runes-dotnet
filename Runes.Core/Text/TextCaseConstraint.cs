@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Runes.Text
+﻿namespace Runes.Text
 {
     public sealed class TextCaseConstraint
     {

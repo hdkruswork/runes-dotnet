@@ -1,20 +1,13 @@
 ﻿using System;
 
 using static Runes.Options;
+using static Runes.Collections.Immutable.Arrays;
 
 namespace Runes.Collections.Immutable
 {
-    public static class List
+    public static class Lists
     {
-        public static List<A> From<A>(params A[] values)
-        {
-            var list = List<A>.Empty;
-            for (int i = values.Length - 1; i >= 0; i--)
-            {
-                list = list.Prepend(values[i]);
-            }
-            return list;
-        }
+        public static List<A> List<A>(params A[] values) => ImmutableArray(values).ToList();
     }
 
     public abstract class List<A> : SeqLike<A, List<A>>

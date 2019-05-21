@@ -10,7 +10,7 @@ namespace Runes.Collections.Immutable
 {
     public static class Arrays
     {
-        public static Array<T> ImmutableArray<T>(T[] array) => new Array<T>(array);
+        public static Array<T> ImmutableArray<T>(T[] array) => ToImmutableArray(array);
 
         public static Array<T> ImmutableArray<T>(T item, long length)
         {
@@ -18,6 +18,15 @@ namespace Runes.Collections.Immutable
             System.Array.Fill(arr, item);
             return ImmutableArray(arr);
         }
+
+        public static Array<T> ToImmutableArray<T>(this T[] array)
+        {
+            T[] result = new T[array.LongLength];
+            array.CopyTo(result.AsMemory());
+            return new Array<T>(result);
+        }
+
+        public static List<T> ToList<T>(this T[] array) => new Array<T>(array).ToList();
     }
 
     public sealed class Array<T> : Traversable<T>
@@ -91,12 +100,7 @@ namespace Runes.Collections.Immutable
             }
         }
 
-        public override T[] ToArray()
-        {
-            T[] result = new T[LongLength];
-            array.CopyTo(result.AsMemory());
-            return result;
-        }
+        public override T[] ToArray() => array.ToImmutableArray().array;
 
         public override Stream<T> ToStream()
         {
