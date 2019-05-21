@@ -18,7 +18,7 @@
                 builder.Append(item);
             }
             builder.Append(rear);
-            return builder.Result();
+            return builder.Build();
         }
 
         public virtual Repr Append(Repr other)
@@ -32,7 +32,7 @@
             {
                 builder.Append(item);
             }
-            return builder.Result();
+            return builder.Build();
         }
 
         public abstract Repr Prepend(A e);
@@ -48,9 +48,9 @@
             {
                 builder.Append(item);
             }
-            return builder.Result();
+            return builder.Build();
         }
 
-        public override Repr Reverse() => FoldLeft(NewBuilder().Result(), (acc, it) => acc.Prepend(it));
+        public override Repr Reverse() => FoldLeft(NewBuilder().Build(), (acc, it) => acc.Prepend(it));
     }
 }

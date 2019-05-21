@@ -17,7 +17,7 @@ namespace Runes.Collections.Immutable
         Option<A> HeadOption { get; }
         Repr Tail { get; }
 
-        That Collect<B, That>(IPartialFunction<A, B> pf, ICollectionBuilder<B, That> bf) where That: ISeqViewLike<B, That>;
+        That Collect<B, That>(IPartialFunction<A, B> pf, ITraversableBuilder<B, That> bf) where That: ISeqViewLike<B, That>;
         Option<B> CollectFirst<B>(IPartialFunction<A, B> pf);
         bool Correspond<B, That>(That other, Func<A, B, bool> p) where That: ISeqViewLike<B, That>;
         Repr Drops(int count);
@@ -28,18 +28,18 @@ namespace Runes.Collections.Immutable
         bool Exists(Func<A, bool> p);
         Repr Filter(Func<A, bool> p);
         Repr FilterNot(Func<A, bool> p);
-        R FlatMap<B, That, R>(Func<A, That> f, ICollectionBuilder<B, R> bf) where That : ITraversable<B> where R: ISeqViewLike<B, R>;
+        R FlatMap<B, That, R>(Func<A, That> f, ITraversableBuilder<B, R> bf) where That : ITraversable<B> where R: ISeqViewLike<B, R>;
         bool ForAll(Func<A, bool> p);
         bool GetHeadIfPresent(out A head);
-        That Map<B, That>(Func<A, B> f, ICollectionBuilder<B, That> bf) where That: ISeqViewLike<B, That>;
+        That Map<B, That>(Func<A, B> f, ITraversableBuilder<B, That> bf) where That: ISeqViewLike<B, That>;
         Repr Reverse();
         int Size();
         Repr Take(int count);
         Repr TakeWhile(Func<A, bool> p);
         Repr TakeWhileNot(Func<A, bool> p);
-        R Zip<B, That, R>(ISeqViewLike<B, That> another, ICollectionBuilder<(A, B), R> b)
+        R Zip<B, That, R>(ISeqViewLike<B, That> another, ITraversableBuilder<(A, B), R> b)
             where That : ISeqViewLike<B, That> where R : ISeqLike<(A, B), R>;
-        That ZipWithIndex<That>(ICollectionBuilder<(A, int), That> b) where That: ISeqViewLike<(A, int), That>;
+        That ZipWithIndex<That>(ITraversableBuilder<(A, int), That> b) where That: ISeqViewLike<(A, int), That>;
     }
 
     public abstract class SeqViewLike<A, Repr>
@@ -167,7 +167,7 @@ namespace Runes.Collections.Immutable
                 builder = builder.Append(elem);
                 counter -= 1;
             }
-            return builder.Result();
+            return builder.Build();
         }
 
         public virtual Repr TakeWhile(Func<A, bool> p) => TakeWhile(p, true);
@@ -181,9 +181,9 @@ namespace Runes.Collections.Immutable
 
         protected Repr ThisAsRepr => (Repr)this;
 
-        protected abstract ICollectionBuilder<A, Repr> NewBuilder();
+        protected abstract ITraversableBuilder<A, Repr> NewBuilder();
 
-        protected virtual That Collect<B, That>(IPartialFunction<A, B> pf, ICollectionBuilder<B, That> builder)
+        protected virtual That Collect<B, That>(IPartialFunction<A, B> pf, ITraversableBuilder<B, That> builder)
             where That: ISeqViewLike<B, That>
         {
             var bf = builder;
@@ -195,56 +195,56 @@ namespace Runes.Collections.Immutable
                     bf.Append(res);
                 }
             }
-            return bf.Result();
+            return bf.Build();
         }
 
-        protected virtual R FlatMap<B, That, R>(Func<A, That> f, ICollectionBuilder<B, R> bf)
+        protected virtual R FlatMap<B, That, R>(Func<A, That> f, ITraversableBuilder<B, R> bf)
             where That : ITraversable<B> where R: ISeqViewLike<B, R>
         {
-            var builder = bf.NewBuilder();
+            var builder = bf;
             foreach (var item in this)
             {
                 builder = builder.Append(f(item));
             }
-            return builder.Result();
+            return builder.Build();
         }
 
-        protected virtual That Map<B, That>(Func<A, B> f, ICollectionBuilder<B, That> bf)
+        protected virtual That Map<B, That>(Func<A, B> f, ITraversableBuilder<B, That> bf)
             where That: ISeqViewLike<B, That>
         {
-            var builder = bf.NewBuilder();
+            var builder = bf;
             foreach (var item in this)
             {
                 builder = builder.Append(f(item));
             }
-            return builder.Result();
+            return builder.Build();
         }
         
-        protected virtual R Zip<B, That, R>(ISeqViewLike<B, That> another, ICollectionBuilder<(A, B), R> bf)
+        protected virtual R Zip<B, That, R>(ISeqViewLike<B, That> another, ITraversableBuilder<(A, B), R> bf)
             where That : ISeqViewLike<B, That>
             where R : ISeqViewLike<(A, B), R>
         {
-            var builder = bf.NewBuilder();
+            var builder = bf;
             var seqA = ThisAsRepr;
             var seqB = another;
             while (seqA.GetHeadIfPresent(out A elemA) && seqB.GetHeadIfPresent(out B elemB))
             {
                 builder = builder.Append((elemA, elemB));
             }
-            return builder.Result();
+            return builder.Build();
         }
 
-        protected virtual That ZipWithIndex<That>(ICollectionBuilder<(A, int), That> bf) where That : ISeqViewLike<(A, int), That>
+        protected virtual That ZipWithIndex<That>(ITraversableBuilder<(A, int), That> bf) where That : ISeqViewLike<(A, int), That>
         {
             var idx = 0;
             var curr = ThisAsRepr;
-            var builder = bf.NewBuilder();
+            var builder = bf;
             while (curr.GetHeadIfPresent(out A elem))
             {
                 builder = builder.Append((elem, idx));
                 idx += 1;
             }
-            return builder.Result();
+            return builder.Build();
         }
 
         // Private members
@@ -259,7 +259,7 @@ namespace Runes.Collections.Immutable
                     builder.Append(item);
                 }
             }
-            return builder.Result();
+            return builder.Build();
         }
 
         private Repr DropsWhile(Func<A, bool> p, bool isTruthly, out int dropped)
@@ -283,17 +283,17 @@ namespace Runes.Collections.Immutable
                 builder = builder.Append(elem);
                 curr = curr.Tail;
             }
-            return builder.Result();
+            return builder.Build();
         }
 
-        That ISeqViewLike<A, Repr>.Collect<B, That>(IPartialFunction<A, B> pf, ICollectionBuilder<B, That> bf) => Collect(pf, bf);
+        That ISeqViewLike<A, Repr>.Collect<B, That>(IPartialFunction<A, B> pf, ITraversableBuilder<B, That> bf) => Collect(pf, bf);
 
-        R ISeqViewLike<A, Repr>.FlatMap<B, That, R>(Func<A, That> f, ICollectionBuilder<B, R> bf) => FlatMap(f, bf);
+        R ISeqViewLike<A, Repr>.FlatMap<B, That, R>(Func<A, That> f, ITraversableBuilder<B, R> bf) => FlatMap(f, bf);
 
-        That ISeqViewLike<A, Repr>.Map<B, That>(Func<A, B> f, ICollectionBuilder<B, That> builder) => Map(f, builder);
+        That ISeqViewLike<A, Repr>.Map<B, That>(Func<A, B> f, ITraversableBuilder<B, That> builder) => Map(f, builder);
         
-        R ISeqViewLike<A, Repr>.Zip<B, That, R>(ISeqViewLike<B, That> another, ICollectionBuilder<(A, B), R> bf) => Zip(another, bf);
+        R ISeqViewLike<A, Repr>.Zip<B, That, R>(ISeqViewLike<B, That> another, ITraversableBuilder<(A, B), R> bf) => Zip(another, bf);
 
-        That ISeqViewLike<A, Repr>.ZipWithIndex<That>(ICollectionBuilder<(A, int), That> bf) => ZipWithIndex(bf);
+        That ISeqViewLike<A, Repr>.ZipWithIndex<That>(ITraversableBuilder<(A, int), That> bf) => ZipWithIndex(bf);
     }
 }

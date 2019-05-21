@@ -2,7 +2,9 @@
 using System;
 
 using Mutables = System.Collections;
+using static Runes.Collections.Builders;
 using static Runes.Collections.Immutable.Arrays;
+using static Runes.Collections.Immutable.Streams;
 
 namespace Runes.Collections
 {
@@ -10,15 +12,12 @@ namespace Runes.Collections
     {
         public static ITraversable<A> ToTraversable<A>(this Mutables.Generic.IEnumerable<A> e)
         {
-            if (e is Immutable.List<A> list)
-                return list;
-
-            var builder = Immutable.List<A>.Builder;
-            foreach (var item in e)
+            if (e is List<A> list)
             {
-                builder = builder.Append(item);
+                return list;
             }
-            return builder.Result();
+
+            return Stream(e).ToList();
         }
     }
 
@@ -58,7 +57,7 @@ namespace Runes.Collections
 
         public abstract Mutables.Generic.IEnumerator<A> GetEnumerator();
 
-        public virtual List<A> ToList() => FoldLeft(List<A>.Builder.NewBuilder(), (bf, it) => bf.Append(it)).Result();
+        public virtual List<A> ToList() => FoldLeft(ListBuilder<A>(), (bf, it) => bf.Append(it)).Build();
 
         public virtual A[] ToArray()
         {

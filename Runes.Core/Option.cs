@@ -53,12 +53,7 @@ namespace Runes
         {
             public static readonly OptionBuilder Object = new OptionBuilder();
 
-            public override Option<A> BuildFrom(A value) => Some(value);
-
-            public override Option<A> Empty() => None<A>();
-
-            public override Option<A> TransformFrom(IMonad<A> other) =>
-                other is Option<A> option ? option : base.TransformFrom(other);
+            public override Option<A> Build() => GetOption();
 
             private OptionBuilder() { }
         }

@@ -35,21 +35,16 @@ namespace Runes.Collections.Immutable
 
         public Seq<(A, int)> ZipWithIndex() => ZipWithIndex(Seq.Empty<(A, int)>().NewBuilder());
 
-        protected override ICollectionBuilder<A, Seq<A>> NewBuilder() => new SeqBuilder<A>();
+        protected override ITraversableBuilder<A, Seq<A>> NewBuilder() => new SeqBuilder<A>();
 
         // Private members
 
-        private sealed class SeqBuilder<T> : CollectionBuilder<T, Seq<T>>, IBuilder<T, Seq<T>>
+        private sealed class SeqBuilder<T> : TraversableBuilder<T, Seq<T>>
         {
-            public SeqBuilder() : base() {}
-            public SeqBuilder(T rear, CollectionBuilder<T, Seq<T>> init) : base(rear, init) { }
-
-            public override CollectionBuilder<T, Seq<T>> NewBuilder() => new SeqBuilder<T>();
-
-            public override Seq<T> Empty() => Seq.Empty<T>();
-
-            protected override CollectionBuilder<T, Seq<T>> NewBuilder(T rear, CollectionBuilder<T, Seq<T>> init) =>
-                new SeqBuilder<T>(rear, init);
+            public override Seq<T> Build() =>
+                stream
+                    .Reverse()
+                    .FoldLeft(Seq.Empty<T>(), (seq, it) => new ConsSeq<T>(it, seq));
         }
     }
 

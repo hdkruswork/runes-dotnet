@@ -12,11 +12,9 @@ namespace Runes.Collections.Immutable
 
     public abstract class List<A> : SeqLike<A, List<A>>
     {
-        public static readonly ICollectionBuilder<A, List<A>> Builder = new ListBuilder<A>();
-
         public static readonly List<A> Empty = new EmptyList<A>();
 
-        public List<B> Collect<B>(IPartialFunction<A, B> pf) => Collect(pf, List<B>.Builder);
+        public List<B> Collect<B>(IPartialFunction<A, B> pf) => Collect(pf, List<B>.Empty.NewBuilder());
 
         public Option<A> GetAt(int idx)
         {
@@ -30,32 +28,17 @@ namespace Runes.Collections.Immutable
             return curr.HeadOption;
         }
 
-        public List<B> FlatMap<B, That>(Func<A, That> f) where That: ITraversable<B> => FlatMap(f, List<B>.Builder);
+        public List<B> FlatMap<B, That>(Func<A, That> f) where That: ITraversable<B> => FlatMap(f, List<B>.Empty.NewBuilder());
 
-        public List<B> Map<B>(Func<A, B> f) => Map(f, List<B>.Builder);
+        public List<B> Map<B>(Func<A, B> f) => Map(f, List<B>.Empty.NewBuilder());
 
         public override List<A> Prepend(A e) => new ConsList<A>(e, this);
 
-        public List<(A, B)> Zip<B>(List<B> other) => Zip(other, List<(A, B)>.Builder);
+        public List<(A, B)> Zip<B>(List<B> other) => Zip(other, List<(A, B)>.Empty.NewBuilder());
 
-        public List<(A, int)> ZipWithIndex() => ZipWithIndex(List<(A, int)>.Builder);
+        public List<(A, int)> ZipWithIndex() => ZipWithIndex(List<(A, int)>.Empty.NewBuilder());
 
-        protected override ICollectionBuilder<A, List<A>> NewBuilder() => Builder;
-
-        // Private members
-
-        private sealed class ListBuilder<T> : CollectionBuilder<T, List<T>>
-        {
-            public ListBuilder() : base() {}
-            public ListBuilder(T rear, CollectionBuilder<T, List<T>> init) : base(rear, init) { }
-
-            public override CollectionBuilder<T, List<T>> NewBuilder() => new ListBuilder<T>();
-
-            public override List<T> Empty() => List<T>.Empty;
-
-            protected override CollectionBuilder<T, List<T>> NewBuilder(T rear, CollectionBuilder<T, List<T>> init) =>
-                new ListBuilder<T>(rear, init);
-        }
+        protected override ITraversableBuilder<A, List<A>> NewBuilder() => new ListBuilder<A>();
     }
 
     public sealed class EmptyList<A> : List<A>
@@ -84,5 +67,13 @@ namespace Runes.Collections.Immutable
 
         public override string ToString() =>
             $"{Head}{(Tail.NonEmpty ? $", {Tail}" : string.Empty)}";
+    }
+
+    public sealed class ListBuilder<T> : TraversableBuilder<T, List<T>>
+    {
+        public override List<T> Build() =>
+            stream
+                .ToImmutableArray()
+                .FoldRight(List<T>.Empty, (list, it) => list.Prepend(it));
     }
 }

@@ -14,8 +14,8 @@ namespace Runes.Test
         private static void TestLeftIdentityRule<M>(IMonadBuilder<int, M> builder) where M : IMonad<int>
         {
             var value = 1;
-            var monad = builder.BuildFrom(value);
-            IMonad<int> f(int i) => builder.BuildFrom(i * 2);
+            var monad = builder.SetValue(value).Build();
+            IMonad<int> f(int i) => builder.SetValue(i * 2).Build();
             Assert.AreEqual(
                 monad.FlatMap(f, builder),
                 f(value),
@@ -26,10 +26,10 @@ namespace Runes.Test
         private static void TestRightIdentityRule<M>(IMonadBuilder<int, M> builder) where M : IMonad<int>
         {
             var value = 1;
-            var monad = builder.BuildFrom(value);
+            var monad = builder.SetValue(value).Build();
             Assert.AreEqual(
                 monad,
-                monad.FlatMap(v => builder.BuildFrom(v), builder),
+                monad.FlatMap(v => builder.SetValue(v).Build(), builder),
                 $"Type '{typeof(M)}' doesn't obey the right identity rule of monads"
             );
         }
@@ -37,9 +37,9 @@ namespace Runes.Test
         private static void TestAssociativityRule<M>(IMonadBuilder<int, M> builder) where M : IMonad<int>
         {
             var value = 1;
-            var monad = builder.BuildFrom(value);
-            IMonad<int> f(int i) => builder.BuildFrom(i * 2);
-            IMonad<int> g(int i) => builder.BuildFrom(i + 6);
+            var monad = builder.SetValue(value).Build();
+            IMonad<int> f(int i) => builder.SetValue(i * 2).Build();
+            IMonad<int> g(int i) => builder.SetValue(i + 6).Build();
 
             Assert.AreEqual(
                 monad.FlatMap(f, builder).FlatMap(g, builder),

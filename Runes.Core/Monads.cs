@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 
 using static Runes.Collections.Immutable.Streams;
+using static Runes.Options;
 using static Runes.Units;
 
 namespace Runes
@@ -79,18 +80,24 @@ namespace Runes
         protected abstract IMonadBuilder<A, Repr> GetBuilder();
 
         protected That FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) where That: IMonad<B> =>
-            GetIfPresent(out A value) ? builder.TransformFrom(f(value)) : builder.Empty();
+            GetIfPresent(out A value)
+                ? builder.SetValueFrom(f(value)).Build()
+                : builder.Clear().Build();
 
         protected That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That: IMonad<B> =>
-            GetIfPresent(out A value) ? builder.BuildFrom(f(value)) : builder.Empty();
+            GetIfPresent(out A value)
+                ? builder.SetValue(f(value)).Build()
+                : builder.Clear().Build();
 
         protected That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That: IMonad<(A, B)> =>
             GetIfPresent(out A thisValue) && other.GetIfPresent(out B otherValue)
-                ? builder.BuildFrom((thisValue, otherValue))
-                : builder.Empty();
+                ? builder.SetValue((thisValue, otherValue)).Build()
+                : builder.Clear().Build();
         
         protected That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That: IMonad<(A, int)> =>
-            GetIfPresent(out A thisValue) ? builder.BuildFrom((thisValue, 0)) : builder.Empty();
+            GetIfPresent(out A thisValue)
+                ? builder.SetValue((thisValue, 0)).Build()
+                : builder.Clear().Build();
 
         // Private members
 
@@ -98,8 +105,8 @@ namespace Runes
         {
             var builder = GetBuilder();
             return GetIfPresent(out A value) && p(value) == isTruthly
-                ? builder.TransformFrom(this)
-                : builder.Empty();
+                ? builder.SetValueFrom(this).Build()
+                : builder.Clear().Build();
         }
 
         That IMonad<A>.FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) => FlatMap(f, builder);
@@ -111,17 +118,40 @@ namespace Runes
         That IMonad<A>.ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) => ZipWithIndex(builder);
     }
 
-    public interface IMonadBuilder<A, MM>: IBuilderLike<A, MM, IMonadBuilder<A, MM>> where MM: IMonad<A>
+    public interface IMonadBuilder<A, M> : IBuilder<M> where M : IMonad<A>
     {
-        MM TransformFrom(IMonad<A> other);
+        IMonadBuilder<A, M> Clear();
+
+        IMonadBuilder<A, M> SetValue(A value);
+
+        IMonadBuilder<A, M> SetValueFrom(IMonad<A> other);
     }
 
-    public abstract class MonadBuilder<A, MM> : BuilderLike<A, MM, MonadBuilder<A, MM>>, IMonadBuilder<A, MM> where MM : MonadLike<A, MM>
+    public abstract class MonadBuilder<A, M> : IMonadBuilder<A, M> where M : IMonad<A>
     {
-        public virtual MM TransformFrom(IMonad<A> other) => other.GetIfPresent(out A value) ? BuildFrom(value) : Empty();
+        private Option<A> option = null;
 
-        public override MonadBuilder<A, MM> NewBuilder() => this;
+        public IMonadBuilder<A, M> Clear()
+        {
+            option = None<A>();
 
-        IMonadBuilder<A, MM> IBuilderLike<A, MM, IMonadBuilder<A, MM>>.NewBuilder() => NewBuilder();
+            return this;
+        }
+
+        public IMonadBuilder<A, M> SetValue(A value)
+        {
+            option = Some(value);
+
+            return this;
+        }
+
+        public IMonadBuilder<A, M> SetValueFrom(IMonad<A> other) =>
+            other.GetIfPresent(out A value)
+                ? SetValue(value)
+                : Clear();
+
+        public abstract M Build();
+
+        protected Option<A> GetOption() => option ?? None<A>();
     }
 }
