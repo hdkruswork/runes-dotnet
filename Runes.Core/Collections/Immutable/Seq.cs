@@ -25,7 +25,7 @@ namespace Runes.Collections.Immutable
 
         public Seq<B> Collect<B>(IPartialFunction<A, B> pf) => Collect(pf, Seq.Empty<B>().NewBuilder());
 
-        public Seq<B> FlatMap<B, That>(Func<A, That> f) where That: ITraversable<B> => FlatMap(f, Seq.Empty<B>().NewBuilder());
+        public Seq<B> FlatMap<B, That>(Func<A, That> f) where That : ITraversable<B> => FlatMap(f, Seq.Empty<B>().NewBuilder());
 
         public Seq<B> Map<B>(Func<A, B> f) => Map(f, Seq.Empty<B>().NewBuilder());
 

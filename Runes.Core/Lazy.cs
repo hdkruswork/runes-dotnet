@@ -20,7 +20,7 @@ namespace Runes
             Option<A> res = None<A>();
             if (!IsComputed)
             {
-                lock(this)
+                lock (this)
                 {
                     if (!IsComputed)
                     {

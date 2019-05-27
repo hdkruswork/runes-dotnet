@@ -1,7 +1,6 @@
 ﻿using System;
-
-using static Runes.Options;
 using static Runes.Collections.Immutable.Arrays;
+using static Runes.Options;
 
 namespace Runes.Collections.Immutable
 {
@@ -28,7 +27,7 @@ namespace Runes.Collections.Immutable
             return curr.HeadOption;
         }
 
-        public List<B> FlatMap<B, That>(Func<A, That> f) where That: ITraversable<B> => FlatMap(f, List<B>.Empty.NewBuilder());
+        public List<B> FlatMap<B, That>(Func<A, That> f) where That : ITraversable<B> => FlatMap(f, List<B>.Empty.NewBuilder());
 
         public List<B> Map<B>(Func<A, B> f) => Map(f, List<B>.Empty.NewBuilder());
 
@@ -49,7 +48,7 @@ namespace Runes.Collections.Immutable
 
         public override string ToString() => string.Empty;
 
-        internal EmptyList() {}
+        internal EmptyList() { }
     }
 
     internal class ConsList<A> : List<A>

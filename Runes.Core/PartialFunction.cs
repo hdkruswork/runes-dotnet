@@ -15,7 +15,7 @@ namespace Runes
         public O Apply(I input) => ApplyFunc(input);
 
         public bool IsDefinedAt(I input) => IsDefinedAtFunc(input);
-        
+
         internal PartialFunction(Func<I, O> applyFunc, Func<I, bool> isDefinedAtFunc)
         {
             ApplyFunc = applyFunc;

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Runes.Collections.Immutable;
+using System;
 using System.Collections.Generic;
-using Runes.Collections.Immutable;
-
 using static Runes.Options;
 using static Runes.Units;
 
@@ -28,7 +27,7 @@ namespace Runes.Collections.Mutable
 
         public Option<A> Peek()
         {
-            lock(Head)
+            lock (Head)
             {
                 return InnerPeek();
             }
@@ -43,7 +42,7 @@ namespace Runes.Collections.Mutable
                 {
                     if (Head.Next == Rear)
                     {
-                        lock(Rear)
+                        lock (Rear)
                         {
                             if (Head.Next == Rear)
                             {

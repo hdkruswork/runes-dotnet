@@ -20,17 +20,17 @@ namespace Runes
         bool ForAll(Func<A, bool> p);
         bool GetIfPresent(out A value);
         That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That : IMonad<B>;
-        That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That: IMonad<(A, B)>;
-        That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That: IMonad<(A, int)>;
+        That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That : IMonad<(A, B)>;
+        That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That : IMonad<(A, int)>;
     }
 
-    public interface IMonadLike<A, Repr>: IMonad<A> where Repr: IMonadLike<A, Repr>
+    public interface IMonadLike<A, Repr> : IMonad<A> where Repr : IMonadLike<A, Repr>
     {
         Repr Filter(Func<A, bool> p);
         Repr FilterNot(Func<A, bool> p);
     }
 
-    public abstract class MonadLike<A, Repr>: Traversable<A>, IMonadLike<A, Repr> where Repr: IMonadLike<A, Repr>
+    public abstract class MonadLike<A, Repr> : Traversable<A>, IMonadLike<A, Repr> where Repr : IMonadLike<A, Repr>
     {
         public abstract bool IsEmpty { get; }
 
@@ -43,7 +43,7 @@ namespace Runes
         public Repr Filter(Func<A, bool> p) => Filter(p, true);
 
         public Repr FilterNot(Func<A, bool> p) => Filter(p, false);
-        
+
         public bool ForAll(Func<A, bool> p) => !GetIfPresent(out A value) || p(value);
 
         public abstract bool GetIfPresent(out A value);
@@ -79,22 +79,22 @@ namespace Runes
 
         protected abstract IMonadBuilder<A, Repr> GetBuilder();
 
-        protected That FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) where That: IMonad<B> =>
+        protected That FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) where That : IMonad<B> =>
             GetIfPresent(out A value)
                 ? builder.SetValueFrom(f(value)).Build()
                 : builder.Clear().Build();
 
-        protected That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That: IMonad<B> =>
+        protected That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That : IMonad<B> =>
             GetIfPresent(out A value)
                 ? builder.SetValue(f(value)).Build()
                 : builder.Clear().Build();
 
-        protected That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That: IMonad<(A, B)> =>
+        protected That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That : IMonad<(A, B)> =>
             GetIfPresent(out A thisValue) && other.GetIfPresent(out B otherValue)
                 ? builder.SetValue((thisValue, otherValue)).Build()
                 : builder.Clear().Build();
-        
-        protected That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That: IMonad<(A, int)> =>
+
+        protected That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That : IMonad<(A, int)> =>
             GetIfPresent(out A thisValue)
                 ? builder.SetValue((thisValue, 0)).Build()
                 : builder.Clear().Build();
@@ -110,7 +110,7 @@ namespace Runes
         }
 
         That IMonad<A>.FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) => FlatMap(f, builder);
-        
+
         That IMonad<A>.Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) => Map(f, builder);
 
         That IMonad<A>.Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) => Zip(other, builder);

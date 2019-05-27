@@ -53,7 +53,7 @@ namespace Runes.Text
     {
         public static HexEncoder Object => new HexEncoder();
 
-        private HexEncoder() {}
+        private HexEncoder() { }
 
         public byte[] Encode(string text) =>
             text.ToLower()
@@ -64,7 +64,7 @@ namespace Runes.Text
                     var (hiChar, lowChar) = (pair[0], pair[1]);
                     var hiIndex = HexAlphabet.Chars.IndexOf(hiChar);
                     var lowIndex = HexAlphabet.Chars.IndexOf(lowChar);
-                    byte hi = hiIndex >= 0 ? (byte)(hiIndex << 0x04): byte.MinValue;
+                    byte hi = hiIndex >= 0 ? (byte)(hiIndex << 0x04) : byte.MinValue;
                     byte low = lowIndex >= 0 ? (byte)lowIndex : byte.MinValue;
                     return (byte)(hi | low);
                 })

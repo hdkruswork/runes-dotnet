@@ -30,7 +30,7 @@ namespace Runes.Collections.Immutable.Test
             ));
 
             var factStream = factorial();
-            
+
             var expected = Stream(1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880)
                 .Correspond(factStream.Take(10), (a, b) => a == b);
 

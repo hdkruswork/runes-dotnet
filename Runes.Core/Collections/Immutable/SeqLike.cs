@@ -1,6 +1,6 @@
 ﻿namespace Runes.Collections.Immutable
 {
-    public interface ISeqLike<A, Repr>: ISeqViewLike<A, Repr> where Repr: ISeqLike<A, Repr>
+    public interface ISeqLike<A, Repr> : ISeqViewLike<A, Repr> where Repr : ISeqLike<A, Repr>
     {
         Repr Append(A rear);
         Repr Append(Repr other);
@@ -8,7 +8,7 @@
         Repr Prepend(Repr e);
     }
 
-    public abstract class SeqLike<A, Repr> : SeqViewLike<A, Repr>, ISeqLike<A, Repr> where Repr: SeqLike<A, Repr>
+    public abstract class SeqLike<A, Repr> : SeqViewLike<A, Repr>, ISeqLike<A, Repr> where Repr : SeqLike<A, Repr>
     {
         public virtual Repr Append(A rear)
         {

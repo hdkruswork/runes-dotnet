@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Options;
 using static Runes.Lazies;
+using static Runes.Options;
 using static Runes.Units;
 
 namespace Runes.Collections.Immutable
@@ -33,7 +32,7 @@ namespace Runes.Collections.Immutable
     {
         public static explicit operator Array<T>(T[] array) => new Array<T>(array);
 
-        public Option<T> this[int index] => this[(long) index];
+        public Option<T> this[int index] => this[(long)index];
 
         public Option<T> this[long index] =>
             index >= 0L && index < array.LongLength

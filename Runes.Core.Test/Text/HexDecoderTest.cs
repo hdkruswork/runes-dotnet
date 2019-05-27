@@ -11,7 +11,7 @@ namespace Runes.Text.Test
         public void TestDecoding()
         {
             var hex = HexDecoder()
-                .Decode(new byte [] { 0x23, 0xa4, 0x3c, 0xff, 0x00 });
+                .Decode(new byte[] { 0x23, 0xa4, 0x3c, 0xff, 0x00 });
 
             Assert.AreEqual("23a43cff00", hex);
         }
@@ -21,7 +21,7 @@ namespace Runes.Text.Test
         {
             var hex = HexDecoder()
                 .WithCase(TextCaseConstraint.UPPERCASED)
-                .Decode(new byte [] { 0x23, 0xa4, 0x3c, 0xff, 0x00 });
+                .Decode(new byte[] { 0x23, 0xa4, 0x3c, 0xff, 0x00 });
 
             Assert.AreEqual("23A43CFF00", hex);
         }

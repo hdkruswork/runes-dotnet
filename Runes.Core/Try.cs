@@ -2,10 +2,9 @@
 using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
-
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Options;
 using static Runes.Lazies;
+using static Runes.Options;
 using static Runes.Tries;
 using static Runes.Units;
 
@@ -33,12 +32,12 @@ namespace Runes
         public abstract Try<B> FlatMap<B>(Func<A, Try<B>> f);
         public override Unit Foreach(Action<A> action) => Unit(() =>
         {
-            if(GetIfSuccess(out A value))
+            if (GetIfSuccess(out A value))
                 action(value);
         });
         public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
         {
-            if(GetIfSuccess(out A value) && p(value))
+            if (GetIfSuccess(out A value) && p(value))
                 action(value);
         });
         public override IEnumerator<A> GetEnumerator()
@@ -49,14 +48,14 @@ namespace Runes
             }
         }
         public bool GetIfFailure(out Exception ex) => GetIfFailure<Exception>(out ex);
-        public abstract bool GetIfFailure<E>(out E ex) where E: Exception;
+        public abstract bool GetIfFailure<E>(out E ex) where E : Exception;
         public abstract bool GetIfSuccess(out A result);
         public abstract Try<B> Map<B>(Func<A, B> f);
         public Try<A> OrElse(Try<A> alternative) => IsSuccess ? this : alternative;
         public Try<A> OrElse(Lazy<Try<A>> alternative) => IsSuccess ? this : alternative;
-        public Try<A> RecoverWith<E>(Func<E, A> recoverFunc) where E: Exception =>
+        public Try<A> RecoverWith<E>(Func<E, A> recoverFunc) where E : Exception =>
             GetIfFailure(out E ex) ? Try(() => recoverFunc(ex)) : this;
-        public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E: Exception =>
+        public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E : Exception =>
             GetIfFailure(out E ex) ? recoverFunc(ex) : this;
         public Option<A> ToOption() => GetIfSuccess(out A result) ? Some(result) : None<A>();
         public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream(res) : Empty<A>();
@@ -88,7 +87,7 @@ namespace Runes
             {
                 return f(Result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Failure<B>(ex);
             }
@@ -172,14 +171,14 @@ namespace Runes
                 var res = lazy.Get();
                 return Success(res);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Failure<A>(ex);
             }
         }
         public static Try<A> Try<A>(Func<A> func) => Try(Lazy(func));
 
-        public static bool IsFailure<A, E>(Func<A> func, out E ex) where E: Exception => Try(func).GetIfFailure(out ex);
+        public static bool IsFailure<A, E>(Func<A> func, out E ex) where E : Exception => Try(func).GetIfFailure(out ex);
         public static bool IsSuccess<A>(Func<A> func, out A result) => Try(func).GetIfSuccess(out result);
 
         internal static Failure<A> Failure<A>(Exception ex) => new Failure<A>(ex);

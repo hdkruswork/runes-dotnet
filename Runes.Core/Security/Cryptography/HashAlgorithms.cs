@@ -44,6 +44,6 @@ namespace Runes.Security.Cryptography
     {
         public static readonly HashAlgorithmBase Object = new Sha256Algorithm();
 
-        private Sha256Algorithm(): base(System.Security.Cryptography.SHA256.Create()) { }
+        private Sha256Algorithm() : base(System.Security.Cryptography.SHA256.Create()) { }
     }
 }

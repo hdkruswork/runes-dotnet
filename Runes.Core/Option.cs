@@ -1,13 +1,11 @@
 ﻿using System;
 
-using static Runes.Options;
-
 namespace Runes
 {
     public static class Options
     {
-        public static Option<A> Option<A>(A value) where A: class => value != null ? Some(value) : None<A>();
-        public static Option<A> Option<A>(A? value) where A: struct => value.HasValue ? Some(value.Value) : None<A>();
+        public static Option<A> Option<A>(A value) where A : class => value != null ? Some(value) : None<A>();
+        public static Option<A> Option<A>(A? value) where A : struct => value.HasValue ? Some(value.Value) : None<A>();
 
         public static Option<A> None<A>() => Runes.Option<A>.None;
         public static Some<A> Some<A>(A value) => new Some<A>(value);
@@ -19,7 +17,7 @@ namespace Runes
 
         internal static readonly Option<A> None = new None<A>();
 
-        public bool Equals(Option<A> other) 
+        public bool Equals(Option<A> other)
         {
             if (IsEmpty && other.IsEmpty)
                 return true;
@@ -49,7 +47,7 @@ namespace Runes
 
         private protected Option() { }
 
-        private sealed class OptionBuilder: MonadBuilder<A, Option<A>>
+        private sealed class OptionBuilder : MonadBuilder<A, Option<A>>
         {
             public static readonly OptionBuilder Object = new OptionBuilder();
 
@@ -58,7 +56,7 @@ namespace Runes
             private OptionBuilder() { }
         }
     }
-    
+
     public sealed class None<A> : Option<A>
     {
         public override bool IsEmpty => true;

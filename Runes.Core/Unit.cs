@@ -1,5 +1,5 @@
 ﻿using System;
-       
+
 using static Runes.Units;
 
 namespace Runes

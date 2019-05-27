@@ -1,10 +1,9 @@
 ﻿using Runes.Collections.Immutable;
 using System;
-
-using Mutables = System.Collections;
 using static Runes.Collections.Builders;
 using static Runes.Collections.Immutable.Arrays;
 using static Runes.Collections.Immutable.Streams;
+using Mutables = System.Collections;
 
 namespace Runes.Collections
 {

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-
 using static Runes.Collections.Immutable.Arrays;
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Options;
 using static Runes.Lazies;
+using static Runes.Options;
 using static Runes.Tries;
 using static Runes.Units;
 
@@ -37,7 +36,7 @@ namespace Runes.Collections.Immutable
 
         public static Stream<A> Stream<A>(A a1, A a2, Lazy<Stream<A>> tail) => Stream(a1).Append(Stream(a2, tail));
 
-        public static Stream<A> Flatten<A, That>(this Stream<That> stream) where That: Traversable<A> => 
+        public static Stream<A> Flatten<A, That>(this Stream<That> stream) where That : Traversable<A> =>
             stream
                 .HeadOption
                 .Map(trav => trav.ToStream().Append(stream.Tail.Flatten<A, That>()))
@@ -112,7 +111,7 @@ namespace Runes.Collections.Immutable
     {
         public bool IsEmpty => HeadOption.IsEmpty;
 
-        public bool NonEmpty  => HeadOption.NonEmpty;
+        public bool NonEmpty => HeadOption.NonEmpty;
 
         public abstract Option<A> HeadOption { get; }
 
@@ -153,7 +152,7 @@ namespace Runes.Collections.Immutable
         public Stream<A> Drops(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream(head, Lazy(() => Tail.Drops(count -1))))
+                    .Map(head => Stream(head, Lazy(() => Tail.Drops(count - 1))))
                     .GetOrElse(Empty<A>())
                 : Empty<A>();
 
@@ -209,7 +208,7 @@ namespace Runes.Collections.Immutable
         public override IEnumerator<A> GetEnumerator()
         {
             var curr = this;
-            while(curr.GetHeadIfPresent(out A item))
+            while (curr.GetHeadIfPresent(out A item))
             {
                 yield return item;
                 curr = curr.Tail;
@@ -291,7 +290,7 @@ namespace Runes.Collections.Immutable
         {
             var curr = this;
             skipped = 0;
-            while(curr.HeadOption.Exists(p) == isTruthly)
+            while (curr.HeadOption.Exists(p) == isTruthly)
             {
                 curr = curr.Tail;
                 skipped++;
