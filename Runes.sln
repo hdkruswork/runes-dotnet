@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core.Test", "Runes.Co
 		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49} = {68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runes.Calc", "Runes.Calc\Runes.Calc.csproj", "{80286A59-9FE0-4545-875C-AED5F9948E29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80286A59-9FE0-4545-875C-AED5F9948E29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80286A59-9FE0-4545-875C-AED5F9948E29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80286A59-9FE0-4545-875C-AED5F9948E29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80286A59-9FE0-4545-875C-AED5F9948E29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
