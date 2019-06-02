@@ -55,41 +55,23 @@ namespace Runes.Collections.Immutable
 
         public bool GetLastIf(out T last) => Last.GetIfPresent(out last);
 
-        public That FoldRight<That>(That initialValue, Func<That, T, That> f)
-        {
-            var result = initialValue;
-            for (var i = LongLength - 1; i >= 0; i--)
-            {
-                result = f(result, array[i]);
-            }
-            return result;
-        }
+        public override That FoldLeft<That>(That initialValue, Func<That, T, That> f) =>
+            array.FoldLeft(initialValue, f);
 
-        public That FoldRightWhile<That>(That initialValue, Func<That, T, bool> p, Func<That, T, That> f)
-        {
-            var result = initialValue;
-            for (var i = LongLength - 1; i >= 0 && p(result, array[i]); i--)
-            {
-                result = f(result, array[i]);
-            }
-            return result;
-        }
+        public override That FoldLeftWhile<That>(That initialValue, Func<That, T, bool> p, Func<That, T, That> f) =>
+            array.FoldLeftWhile(initialValue, p, f);
 
-        public override Unit Foreach(Action<T> action) => Unit(() =>
-        {
-            foreach (var item in array)
-            {
-                action(item);
-            }
-        });
+        public That FoldRight<That>(That initialValue, Func<That, T, That> f) =>
+            array.FoldRight(initialValue, f);
 
-        public override Unit ForeachWhile(Func<T, bool> p, Action<T> action) => Unit(() =>
-        {
-            for (var i = 0L; i < array.LongLength && p(array[i]); i++)
-            {
-                action(array[i]);
-            }
-        });
+        public That FoldRightWhile<That>(That initialValue, Func<That, T, bool> p, Func<That, T, That> f) =>
+            array.FoldRightWhile(initialValue, p, f);
+
+        public override Unit Foreach(Action<T> action) =>
+            array.Foreach(action);
+
+        public override Unit ForeachWhile(Func<T, bool> p, Action<T> action) =>
+            array.ForeachWhile(p, action);
 
         public override IEnumerator<T> GetEnumerator()
         {
@@ -101,14 +83,18 @@ namespace Runes.Collections.Immutable
 
         public override T[] ToArray() => array.ToImmutableArray().array;
 
-        public override Stream<T> ToStream()
+        public override Stream<T> ToStream() => ToStream(0L, LongLength);
+
+        public Stream<T> ToStream(long startIndex) => ToStream(startIndex, LongLength);
+
+        public Stream<T> ToStream(long startIndex, long length)
         {
-            Stream<T> fromArrayIndex(T[] array, long idx) =>
-                idx >= 0 && idx < array.LongLength
-                    ? Stream(array[idx], Lazy(() => fromArrayIndex(array, idx + 1)))
+            Stream<T> fromArrayIndex(T[] array, long idx, long length) =>
+                idx >= 0 && idx < array.LongLength && length > 0L
+                    ? Stream(array[idx], Lazy(() => fromArrayIndex(array, idx + 1, length - 1)))
                     : Empty<T>();
 
-            return fromArrayIndex(array, 0L);
+            return fromArrayIndex(array, startIndex, length);
         }
 
         // Private members

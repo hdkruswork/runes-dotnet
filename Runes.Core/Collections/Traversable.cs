@@ -45,7 +45,7 @@ namespace Runes.Collections
             Foreach(it => result = f(result, it));
             return result;
         }
-        public That FoldLeftWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f)
+        public virtual That FoldLeftWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f)
         {
             var result = initialValue;
             ForeachWhile(it => p(result, it), it => result = f(result, it));
