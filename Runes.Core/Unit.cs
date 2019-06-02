@@ -15,6 +15,12 @@ namespace Runes
             action();
             return Unit();
         }
+
+        public static Func<Unit> UnitFunc(Action action) =>
+            () => Unit(action);
+
+        public static Func<A, Unit> UnitFunc<A>(Action<A> action) =>
+            it => Unit(() => action(it));
     }
 
     public sealed class Unit
