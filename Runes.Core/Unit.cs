@@ -1,28 +1,9 @@
 ﻿using System;
 
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes
 {
-    public static class Units
-    {
-        private static readonly Unit Object = new Unit();
-
-        public static Unit Unit() => Object;
-
-        public static Unit Unit(Action action)
-        {
-            action();
-            return Unit();
-        }
-
-        public static Func<Unit> UnitFunc(Action action) =>
-            () => Unit(action);
-
-        public static Func<A, Unit> UnitFunc<A>(Action<A> action) =>
-            it => Unit(() => action(it));
-    }
-
     public sealed class Unit
     {
         public static implicit operator Unit(Action action) => Unit(action);

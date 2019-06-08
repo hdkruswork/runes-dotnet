@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+
 using static Runes.Collections.Immutable.Arrays;
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Lazies;
-using static Runes.Options;
 using static Runes.Predef;
-using static Runes.Tries;
-using static Runes.Units;
 
 namespace Runes.Collections.Immutable
 {

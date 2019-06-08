@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Options;
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes
 {

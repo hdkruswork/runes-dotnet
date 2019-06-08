@@ -1,8 +1,7 @@
 ﻿using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
-using static Runes.Options;
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes.Collections.Mutable
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-using static Runes.Options;
+using static Runes.Predef;
 
 namespace Runes
 {
@@ -47,10 +47,5 @@ namespace Runes
 
         private A value;
         private readonly Func<A> getValueFunc;
-    }
-
-    public static class Lazies
-    {
-        public static Lazy<A> Lazy<A>(Func<A> get) => new Lazy<A>(get);
     }
 }

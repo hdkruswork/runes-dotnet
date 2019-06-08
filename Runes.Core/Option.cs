@@ -2,17 +2,6 @@
 
 namespace Runes
 {
-    public static class Options
-    {
-        public static Option<A> Option<A>(A value) where A : class => value != null ? Some(value) : None<A>();
-        public static Option<A> Option<A>(A? value) where A : struct => value.HasValue ? Some(value.Value) : None<A>();
-
-        public static Option<A> None<A>() => Runes.Option<A>.None;
-
-        public static Some<A> Some<A>(A value) =>
-            Equals(value, null) ? throw new ArgumentNullException(nameof(value)) : new Some<A>(value);
-    }
-
     public abstract class Option<A> : MonadLike<A, Option<A>>
     {
         public static IMonadBuilder<A, Option<A>> Builder => OptionBuilder.Object;

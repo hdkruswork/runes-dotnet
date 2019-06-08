@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Lazies;
-using static Runes.Options;
-using static Runes.Tries;
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes.Collections.Immutable
 {

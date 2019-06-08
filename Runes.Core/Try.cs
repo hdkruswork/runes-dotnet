@@ -3,10 +3,7 @@ using Runes.Collections.Immutable;
 using System;
 using System.Collections.Generic;
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Lazies;
-using static Runes.Options;
-using static Runes.Tries;
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes
 {
@@ -159,29 +156,5 @@ namespace Runes
         {
             Exception = ex;
         }
-    }
-
-    public static class Tries
-    {
-        public static Try<Unit> Try(Action action) => Try(() => Unit(action));
-        public static Try<A> Try<A>(Lazy<A> lazy)
-        {
-            try
-            {
-                var res = lazy.Get();
-                return Success(res);
-            }
-            catch (Exception ex)
-            {
-                return Failure<A>(ex);
-            }
-        }
-        public static Try<A> Try<A>(Func<A> func) => Try(Lazy(func));
-
-        public static bool IsFailure<A, E>(Func<A> func, out E ex) where E : Exception => Try(func).GetIfFailure(out ex);
-        public static bool IsSuccess<A>(Func<A> func, out A result) => Try(func).GetIfSuccess(out result);
-
-        internal static Failure<A> Failure<A>(Exception ex) => new Failure<A>(ex);
-        internal static Success<A> Success<A>(A result) => new Success<A>(result);
     }
 }

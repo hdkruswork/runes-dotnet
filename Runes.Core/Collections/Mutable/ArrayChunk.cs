@@ -4,8 +4,7 @@ using Runes.Collections.Immutable;
 
 using static Runes.Collections.Mutable.ArrayChunks;
 using static Runes.Collections.Immutable.Streams;
-using static Runes.Lazies;
-using static Runes.Units;
+using static Runes.Predef;
 
 namespace Runes.Collections.Mutable
 {

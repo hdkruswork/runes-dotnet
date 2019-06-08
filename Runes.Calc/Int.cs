@@ -3,8 +3,8 @@ using System;
 using System.Numerics;
 
 using static Runes.Calc.Predef;
-using static Runes.Lazies;
 using static Runes.Collections.Immutable.Streams;
+using static Runes.Predef;
 
 namespace Runes.Calc
 {

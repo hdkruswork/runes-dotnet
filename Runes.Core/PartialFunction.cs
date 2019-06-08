@@ -1,6 +1,6 @@
 ﻿using System;
 
-using static Runes.Tries;
+using static Runes.Predef;
 
 namespace Runes
 {

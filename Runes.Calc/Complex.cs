@@ -1,7 +1,6 @@
 ﻿using System;
 
 using static Runes.Calc.Complexes;
-using static Runes.Lazies;
 using static Runes.Predef;
 
 namespace Runes.Calc
