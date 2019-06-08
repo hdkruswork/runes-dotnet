@@ -12,8 +12,17 @@ namespace Runes.Collections.Immutable
     {
         public static Stream<A> Empty<A>() => EmptyStream<A>.Object;
 
-        public static Stream<int> StartStream(int head) =>
-            Stream(head, Lazy(() => StartStream(head + 1)));
+        public static Stream<int> IncreasingStream(int head) => StartStream(head, 1);
+        public static Stream<int> DecreasingStream(int head) => StartStream(head, -1);
+
+        public static Stream<BigInteger> IncreasingStream(BigInteger head) => StartStream(head, 1);
+        public static Stream<BigInteger> DecreasingStream(BigInteger head) => StartStream(head, -1);
+
+        public static Stream<int> StartStream(int head, int step) =>
+            Stream(head, Lazy(() => IncreasingStream(head + step)));
+
+        public static Stream<BigInteger> StartStream(BigInteger head, int step) =>
+            new InfinteStream<BigInteger>(head, Lazy(() => IncreasingStream(head + step)));
 
         public static Stream<A> Stream<A>(A head, Lazy<Stream<A>> tail) =>
             new ConsStream<A>(head, tail);
@@ -46,48 +55,80 @@ namespace Runes.Collections.Immutable
 
         public static Stream<char> ToStream(this string str) => Stream(str.ToCharArray());
 
-        private sealed class FixedConsStream<A> : NonEmptyStream<A>
+        public static Stream<A> Unzip<A>(this Stream<(A, A)> zipped)
         {
-            public override Stream<A> Tail { get; }
+            if (zipped.GetHeadIfPresent(out (A, A) head))
+            {
+                (var a, var b) = head;
 
-            internal FixedConsStream(A head, Stream<A> tail) : base(head, tail.Count) => Tail = tail;
+                return Stream(a, b).Append(zipped.Tail.Unzip());
+            }
 
-            protected internal override string ToInternalString() =>
-                $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
+            return Empty<A>();
         }
 
-        private sealed class ConsStream<A> : NonEmptyStream<A>
+        private sealed class InfinteStream<A> : ConsStream<A>
         {
-            public override Knowable<BigInteger> Count =>
-                lazyTail.IsComputed
-                    ? Tail.Count.Map(c => c + 1)
-                    : Unknown<BigInteger>();
+            public override Knowable<BigInteger> Count => Unknown<BigInteger>();
 
+            public override Knowable<bool> IsFinite => Known(false);
+
+            internal InfinteStream(A head, Lazy<Stream<A>> tail) : base(head, tail) { }
+
+            internal InfinteStream(A head, Func<Stream<A>> tail) : base(head, tail) { }
+
+            protected internal override Stream<B> BuildStreamLikeThis<B>(B head, Func<Stream<B>> getTailFunc, bool mayRestrict) =>
+                mayRestrict
+                    ? (Stream<B>) new IndeterminedStream<B>(head, Lazy(() => getTailFunc()))
+                    : new InfinteStream<B>(head, Lazy(() => getTailFunc()));
+        }
+
+        private sealed class IndeterminedStream<A> : ConsStream<A>
+        {
+            public override Knowable<BigInteger> Count => Unknown<BigInteger>();
+
+            public override Knowable<bool> IsFinite => Unknown<bool>();
+
+            internal IndeterminedStream(A head, Lazy<Stream<A>> tail) : base(head, tail) { }
+
+            internal IndeterminedStream(A head, Func<Stream<A>> tail) : base(head, tail) { }
+
+            protected internal override Stream<B> BuildStreamLikeThis<B>(B head, Func<Stream<B>> getTailFunc, bool mayRestrict) =>
+                new IndeterminedStream<B>(head, Lazy(() => getTailFunc()));
+        }
+
+        private class ConsStream<A> : NonEmptyStream<A>
+        {
             public override Stream<A> Tail => lazyTail.Get();
 
             protected internal override string ToInternalString() => $"{Head}, ...";
 
-            internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head, Unknown<BigInteger>()) => lazyTail = tail;
+            internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head) => lazyTail = tail;
 
-            internal ConsStream(A head, Func<Stream<A>> tail) : base(head, Unknown<BigInteger>()) => lazyTail = tail;
+            internal ConsStream(A head, Func<Stream<A>> tail) : base(head) => lazyTail = tail;
 
             private readonly Lazy<Stream<A>> lazyTail;
+        }
+
+        private sealed class FixedConsStream<A> : NonEmptyStream<A>
+        {
+            public override Stream<A> Tail { get; }
+
+            internal FixedConsStream(A head, Stream<A> tail) : base(head) => Tail = tail;
+
+            protected internal override string ToInternalString() =>
+                $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
         }
 
         private abstract class NonEmptyStream<A> : Stream<A>
         {
             public A Head { get; }
 
-            public override Knowable<BigInteger> Count { get; }
-
-            public override Knowable<bool> IsFinite => Count.Map(_ => true);
-
             public override Option<A> HeadOption => Some(Head);
 
-            private protected NonEmptyStream(A head, Knowable<BigInteger> tailCount)
+            private protected NonEmptyStream(A head)
             {
                 Head = head;
-                Count = tailCount.Map(c => c + 1);
             }
 
             public void Deconstruct(out A head, out Stream<A> tail)
@@ -103,8 +144,6 @@ namespace Runes.Collections.Immutable
 
             public override Knowable<BigInteger> Count => Known(BigInteger.Zero);
 
-            public override Knowable<bool> IsFinite => Known(true);
-
             public override Option<A> HeadOption => None<A>();
             public override Stream<A> Tail => this;
 
@@ -118,9 +157,11 @@ namespace Runes.Collections.Immutable
 
     public abstract class Stream<A> : Traversable<A>
     {
-        public abstract Knowable<BigInteger> Count { get; }
+        public virtual Knowable<BigInteger> Count => Known(FoldLeft(BigInteger.Zero, (sum, _) => sum + 1));
 
-        public abstract Knowable<bool> IsFinite { get; }
+        public virtual Knowable<bool> IsFinite => Known(true);
+
+        public Knowable<bool> IsInfinite => IsFinite.Map(v => !v);
 
         public bool IsEmpty => HeadOption.IsEmpty;
 
@@ -130,24 +171,33 @@ namespace Runes.Collections.Immutable
 
         public abstract Stream<A> Tail { get; }
 
-        public Stream<A> Append(A rear) =>
-            HeadOption
-                .Map(head => Stream(head, Lazy(() => Tail.Append(rear))))
+        public Stream<A> Append(A rear)
+        {
+            return HeadOption
+                .Map(head => BuildStreamLikeThis(head, () => Tail.Append(rear), false))
                 .GetOrElse(Stream(rear));
+        }
 
         public Stream<A> Append(IEnumerable<A> e) => Append(e is Stream<A> stream ? stream : Stream(e));
 
-        public Stream<A> Append(Stream<A> other) =>
-            HeadOption
-                .Map(head => Stream(head, Lazy(() => Tail.Append(other))))
+        public Stream<A> Append(Stream<A> other)
+        {
+            var build = GetBuildFunc<A, A, A>(false, this, other);
+
+            return HeadOption
+                .Map(head => build(head, () => Tail.Append(other)))
                 .GetOrElse(other);
+        }
 
         public Stream<B> Collect<B>(IPartialFunction<A, B> pf) =>
             FlatMap<B, Option<B>>(it => Try(() => pf.Apply(it)).ToOption());
 
-        public Stream<B> Collect<B>(Func<A, B> f) => Collect(PartialFunction.From(f));
+        public Stream<B> Collect<B>(Func<A, B> f) =>
+            FlatMap<B, Option<B>>(it => Try(() => f(it)).ToOption());
 
         public Option<B> CollectFirst<B>(IPartialFunction<A, B> pf) => Collect(pf).HeadOption;
+
+        public Option<B> CollectFirst<B>(Func<A, B> f) => Collect(f).HeadOption;
 
         public bool Correspond<B>(Stream<B> other, Func<A, B, bool> p)
         {
@@ -165,7 +215,7 @@ namespace Runes.Collections.Immutable
         public Stream<A> Drops(int count) =>
             count > 0
                 ? HeadOption
-                    .Map(head => Stream(head, Lazy(() => Tail.Drops(count - 1))))
+                    .Map(head => BuildStreamLikeThis(head, () => Tail.Drops(count - 1), false))
                     .GetOrElse(Empty<A>())
                 : Empty<A>();
 
@@ -173,9 +223,9 @@ namespace Runes.Collections.Immutable
 
         public Stream<A> DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p, out _);
 
-        public Stream<A> DropsWhile(Func<A, bool> p, out int skipped) => DropsWhile(p, true, out skipped);
+        public Stream<A> DropsWhile(Func<A, bool> p, out int skipped) => DropsWhile(this, p, true, out skipped);
 
-        public Stream<A> DropsWhileNot(Func<A, bool> p, out int skipped) => DropsWhile(p, false, out skipped);
+        public Stream<A> DropsWhileNot(Func<A, bool> p, out int skipped) => DropsWhile(this, p, false, out skipped);
 
         public bool Exists(Func<A, bool> p) => Filter(p).NonEmpty;
 
@@ -244,10 +294,10 @@ namespace Runes.Collections.Immutable
 
         public Stream<B> Map<B>(Func<A, B> f) =>
             HeadOption
-                .Map(head => Stream(f(head), Lazy(() => Tail.Map(f))))
+                .Map(head => BuildStreamLikeThis(f(head), () => Tail.Map(f), false))
                 .GetOrElse(Empty<B>());
 
-        public Stream<A> Prepend(A e) => Stream(e, this);
+        public Stream<A> Prepend(A e) => BuildStreamLikeThis(e, () => this, false);
 
         public Stream<A> Prepend(IEnumerable<A> e) =>
             (e is Stream<A> stream ? stream : Stream(e))
@@ -266,7 +316,7 @@ namespace Runes.Collections.Immutable
                 tail = tail.Tail;
             }
 
-            return Stream(head, Lazy(() => tail.Sliding(size, step)));
+            return BuildStreamLikeThis(head, () => tail.Sliding(size, step), false);
         }
 
         public Stream<A> Take(int count) =>
@@ -280,40 +330,28 @@ namespace Runes.Collections.Immutable
 
         public Stream<A> TakeWhileNot(Func<A, bool> p) => TakeWhile(this, p, false);
 
+        public (Stream<A>, Stream<A>) TakeAndDrop(int count) => (Take(count), Drops(count));
+
         public override Stream<A> ToStream() => this;
 
         public override string ToString() => $"{{{ToInternalString()}}}";
 
-        public Stream<(A, B)> Zip<B>(Stream<B> other) =>
-            HeadOption.GetIfPresent(out A headA) && other.HeadOption.GetIfPresent(out B headB)
-                ? Stream((headA, headB), Lazy(() => Tail.Zip(other.Tail)))
-                : Empty<(A, B)>();
-
-        public Stream<(A, int)> ZipWithIndex() => Zip(StartStream(0));
-
-        // Private members
-
-        private protected Stream() { }
-
-        protected internal abstract string ToInternalString();
-
-        private Stream<A> Filter(Stream<A> stream, Func<A, bool> p, bool isTruthly)
+        public virtual Stream<(A, B)> Zip<B>(Stream<B> other)
         {
-            var curr = stream;
-            while (curr.HeadOption.GetIfPresent(out A head) && p(head) != isTruthly)
-            {
-                curr = curr.Tail;
-            }
+            var build = GetBuildFunc<(A, B), A, B>(true, this, other);
 
-            return curr
-                .HeadOption
-                .Map(head => Stream(head, Lazy(() => Filter(curr, p, isTruthly))))
-                .GetOrElse(Empty<A>());
+            return HeadOption.GetIfPresent(out A headA) && other.HeadOption.GetIfPresent(out B headB)
+                ? build((headA, headB), () => Tail.Zip(other.Tail))
+                : Empty<(A, B)>();
         }
 
-        private Stream<A> DropsWhile(Func<A, bool> p, bool isTruthly, out int skipped)
+        public Stream<(A, int)> ZipWithIndex() => Zip(IncreasingStream(0));
+
+        // hidden members
+
+        private static Stream<A> DropsWhile(Stream<A> stream, Func<A, bool> p, bool isTruthly, out int skipped)
         {
-            var curr = this;
+            var curr = stream;
             skipped = 0;
             while (curr.HeadOption.Exists(p) == isTruthly)
             {
@@ -323,9 +361,40 @@ namespace Runes.Collections.Immutable
             return curr;
         }
 
-        private Stream<A> TakeWhile(Stream<A> stream, Func<A, bool> p, bool isTruthly) =>
+        private static Stream<A> Filter(Stream<A> stream, Func<A, bool> p, bool isTruthly)
+        {
+            var curr = stream;
+            while (curr.HeadOption.GetIfPresent(out A head) && p(head) != isTruthly)
+            {
+                curr = curr.Tail;
+            }
+
+            return curr
+                .HeadOption
+                .Map(head => stream.BuildStreamLikeThis(head, () => Filter(curr, p, isTruthly), true))
+                .GetOrElse(Empty<A>());
+        }
+
+        private static Stream<A> TakeWhile(Stream<A> stream, Func<A, bool> p, bool isTruthly) =>
             stream.HeadOption.GetIfPresent(out A head) && p(head) == isTruthly
-                ? Stream(head, Lazy(() => TakeWhile(stream.Tail, p, isTruthly)))
+                ? stream.BuildStreamLikeThis(head, () => TakeWhile(stream.Tail, p, isTruthly), true)
                 : Empty<A>();
+
+        private static Func<B, Func<Stream<B>>, Stream<B>> GetBuildFunc<B, C, D>(bool finite, Stream<C> first, Stream<D> second)
+        {
+            Stream<B> firstBuild(B h, Func<Stream<B>> t) => first.BuildStreamLikeThis(h, t, false);
+            Stream<B> secondBuild(B h, Func<Stream<B>> t) => second.BuildStreamLikeThis(h, t, false);
+
+            return first.IsFinite.Contains(finite)
+                ? (Func<B, Func<Stream<B>>, Stream<B>>)firstBuild
+                : secondBuild;
+        }
+
+        private protected Stream() { }
+
+        protected internal virtual Stream<B> BuildStreamLikeThis<B>(B head, Func<Stream<B>> getTailFunc, bool mayRestrict) =>
+            Stream(head, Lazy(() => getTailFunc()));
+
+        protected internal abstract string ToInternalString();
     }
 }
