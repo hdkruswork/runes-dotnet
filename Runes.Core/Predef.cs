@@ -6,7 +6,15 @@ namespace Runes
 {
     public static class Predef
     {
-        public static Option<A> As<A>(this object obj) => obj is A casted ? Some(casted) : None<A>();
+        public static Option<A> As<A>(this object obj) where A: class => obj is A casted ? Some(casted) : None<A>();
+
+        public static int GetFieldsHashCode(params object[] fields) =>
+            fields.FoldLeft(-1534900553, (hash, field) => hash * -1521134295 + field.GetHashCode());
+
+        public static System.Threading.Tasks.Task<A> Async<A>(Func<A> f) =>
+            System.Threading.Tasks.Task<A>.Factory.StartNew(f);
+        
+        #region Collections
 
         public static That FoldLeft<A, That>(this A[] array, That initialValue, Func<That, A, That> f) =>
             FoldLeftWhile(array, initialValue, (agg, curr) => true, f);
@@ -66,5 +74,20 @@ namespace Runes
             }
         });
 
+        #endregion
+        
+        #region Knowable
+
+        public static Known<A> Known<A>(A value) => new Known<A>(value);
+
+        public static Unknown<A> Unknown<A>() => new Unknown<A>();
+
+        public static Knowable<A> ToKnowable<A>(this Option<A> option) =>
+            option is Some<A> some ? Known(some.Value) : (Knowable<A>)Unknown<A>();
+
+        public static Option<A> ToOption<A>(this Knowable<A> knowable) =>
+            knowable is Known<A> known ? Some(known.Value) : None<A>();
+
+        #endregion
     }
 }

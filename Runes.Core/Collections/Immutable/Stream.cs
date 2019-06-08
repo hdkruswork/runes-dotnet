@@ -5,6 +5,7 @@ using static Runes.Collections.Immutable.Arrays;
 using static Runes.Collections.Immutable.Streams;
 using static Runes.Lazies;
 using static Runes.Options;
+using static Runes.Predef;
 using static Runes.Tries;
 using static Runes.Units;
 
@@ -14,13 +15,17 @@ namespace Runes.Collections.Immutable
     {
         public static Stream<A> Empty<A>() => EmptyStream<A>.Object;
 
-        public static Stream<int> StartStream(int head) => Stream(head, Lazy(() => StartStream(head + 1)));
+        public static Stream<int> StartStream(int head) =>
+            Stream(head, Lazy(() => StartStream(head + 1)));
 
-        public static Stream<A> Stream<A>(A head, Lazy<Stream<A>> tail) => new ConsStream<A>(head, tail);
+        public static Stream<A> Stream<A>(A head, Lazy<Stream<A>> tail) =>
+            new ConsStream<A>(head, tail);
 
-        public static Stream<A> Stream<A>(A head, Stream<A> tail) => new FixedConsStream<A>(head, tail);
+        public static Stream<A> Stream<A>(A head, Stream<A> tail) =>
+            new FixedConsStream<A>(head, tail);
 
-        public static Stream<A> Stream<A>(A head) => new FixedConsStream<A>(head, Empty<A>());
+        public static Stream<A> Stream<A>(A head) =>
+            new FixedConsStream<A>(head, Empty<A>());
 
         public static Stream<A> Stream<A>(IEnumerable<A> e)
         {
@@ -44,16 +49,11 @@ namespace Runes.Collections.Immutable
 
         public static Stream<char> ToStream(this string str) => Stream(str.ToCharArray());
 
-        // Private members
-
         private sealed class FixedConsStream<A> : NonEmptyStream<A>
         {
             public override Stream<A> Tail { get; }
 
-            internal FixedConsStream(A head, Stream<A> tail) : base(head)
-            {
-                Tail = tail;
-            }
+            internal FixedConsStream(A head, Stream<A> tail) : base(head, tail.Count) => Tail = tail;
 
             protected internal override string ToInternalString() =>
                 $"{Head}{ (Tail.NonEmpty ? $", {Tail.ToInternalString()}" : "") }";
@@ -61,25 +61,52 @@ namespace Runes.Collections.Immutable
 
         private sealed class ConsStream<A> : NonEmptyStream<A>
         {
+            public override Knowable<BigInteger> Count =>
+                lazyTail.IsComputed
+                    ? Tail.Count.Map(c => c + 1)
+                    : Unknown<BigInteger>();
+
             public override Stream<A> Tail => lazyTail.Get();
 
             protected internal override string ToInternalString() => $"{Head}, ...";
 
-            internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head)
-            {
-                lazyTail = tail;
-            }
-            internal ConsStream(A head, Func<Stream<A>> tail) : base(head)
-            {
-                lazyTail = tail;
-            }
+            internal ConsStream(A head, Lazy<Stream<A>> tail) : base(head, Unknown<BigInteger>()) => lazyTail = tail;
+
+            internal ConsStream(A head, Func<Stream<A>> tail) : base(head, Unknown<BigInteger>()) => lazyTail = tail;
 
             private readonly Lazy<Stream<A>> lazyTail;
+        }
+
+        private abstract class NonEmptyStream<A> : Stream<A>
+        {
+            public A Head { get; }
+
+            public override Knowable<BigInteger> Count { get; }
+
+            public override Knowable<bool> IsFinite => Count.Map(_ => true);
+
+            public override Option<A> HeadOption => Some(Head);
+
+            private protected NonEmptyStream(A head, Knowable<BigInteger> tailCount)
+            {
+                Head = head;
+                Count = tailCount.Map(c => c + 1);
+            }
+
+            public void Deconstruct(out A head, out Stream<A> tail)
+            {
+                head = Head;
+                tail = Tail;
+            }
         }
 
         private sealed class EmptyStream<A> : Stream<A>
         {
             public static readonly EmptyStream<A> Object = new EmptyStream<A>();
+
+            public override Knowable<BigInteger> Count => Known(BigInteger.Zero);
+
+            public override Knowable<bool> IsFinite => Known(true);
 
             public override Option<A> HeadOption => None<A>();
             public override Stream<A> Tail => this;
@@ -90,25 +117,14 @@ namespace Runes.Collections.Immutable
 
             protected internal override string ToInternalString() => "";
         }
-
-        private abstract class NonEmptyStream<A> : Stream<A>
-        {
-            public A Head { get; }
-
-            public override Option<A> HeadOption => Some(Head);
-
-            private protected NonEmptyStream(A head) => Head = head;
-
-            public void Deconstruct(out A head, out Stream<A> tail)
-            {
-                head = Head;
-                tail = Tail;
-            }
-        }
     }
 
     public abstract class Stream<A> : Traversable<A>
     {
+        public abstract Knowable<BigInteger> Count { get; }
+
+        public abstract Knowable<bool> IsFinite { get; }
+
         public bool IsEmpty => HeadOption.IsEmpty;
 
         public bool NonEmpty => HeadOption.NonEmpty;
@@ -217,6 +233,18 @@ namespace Runes.Collections.Immutable
 
         public bool GetHeadIfPresent(out A head) => HeadOption.GetIfPresent(out head);
 
+        public bool GetCountIfFinite(out BigInteger count)
+        {
+            if (IsFinite.Contains(true) && Count is Known<BigInteger> knownCount)
+            {
+                count = knownCount.Value;
+                return true;
+            }
+
+            count = BigInteger.Zero;
+            return false;
+        }
+
         public Stream<B> Map<B>(Func<A, B> f) =>
             HeadOption
                 .Map(head => Stream(f(head), Lazy(() => Tail.Map(f))))
@@ -231,8 +259,6 @@ namespace Runes.Collections.Immutable
         public Stream<A> Prepend(Stream<A> other) => other.Append(this);
 
         public Stream<A> Reverse() => FoldLeft(Empty<A>(), (acc, it) => acc.Prepend(it));
-
-        public BigInteger Size() => FoldLeft(BigInteger.Zero, (sum, _) => sum + 1);
 
         public virtual Stream<A[]> Sliding(int size, int step = 1)
         {
@@ -267,6 +293,8 @@ namespace Runes.Collections.Immutable
                 : Empty<(A, B)>();
 
         public Stream<(A, int)> ZipWithIndex() => Zip(StartStream(0));
+
+        // Private members
 
         private protected Stream() { }
 

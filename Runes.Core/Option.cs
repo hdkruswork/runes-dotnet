@@ -8,7 +8,9 @@ namespace Runes
         public static Option<A> Option<A>(A? value) where A : struct => value.HasValue ? Some(value.Value) : None<A>();
 
         public static Option<A> None<A>() => Runes.Option<A>.None;
-        public static Some<A> Some<A>(A value) => new Some<A>(value);
+
+        public static Some<A> Some<A>(A value) =>
+            Equals(value, null) ? throw new ArgumentNullException(nameof(value)) : new Some<A>(value);
     }
 
     public abstract class Option<A> : MonadLike<A, Option<A>>
@@ -69,7 +71,7 @@ namespace Runes
 
         public override bool Equals(object obj) => obj is Option<A> opt && opt.IsEmpty;
 
-        public override int GetHashCode() => "None".GetHashCode();
+        public override int GetHashCode() => 0.GetHashCode();
 
         public override string ToString() => "None";
     }
@@ -88,7 +90,7 @@ namespace Runes
 
         public override bool Equals(object obj) => obj is Some<A> other && Equals(Value, other.Value);
 
-        public override int GetHashCode() => "Some".GetHashCode() ^ Value.GetHashCode();
+        public override int GetHashCode() => Value.GetHashCode();
 
         public override string ToString() => $"Some({Value})";
 
