@@ -1,156 +1,136 @@
-﻿using Runes.Collections;
-using Runes.Collections.Immutable;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
-using static Runes.Collections.Immutable.Streams;
 using static Runes.Predef;
 
 namespace Runes
 {
-    public interface IMonad<A> : ITraversable<A>
+    public interface IMonad<A>
     {
         bool IsEmpty { get; }
         bool NonEmpty { get; }
 
         bool Contains(A item);
-        bool Exists(Func<A, bool> p);
-        That FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) where That : IMonad<B>;
-        bool ForAll(Func<A, bool> p);
+        IMonad<B> Collect<B>(Func<A, Option<B>> f);
+        bool Exist(Func<A, bool> p);
+        IMonad<A> Filter(Func<A, bool> p);
+        IMonad<A> FilterNot(Func<A, bool> p);
+        IMonad<B> FlatMap<B>(Func<A, IMonad<B>> f);
+        Unit Foreach(Action<A> action);
         bool GetIfPresent(out A value);
-        That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That : IMonad<B>;
-        That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That : IMonad<(A, B)>;
-        That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That : IMonad<(A, int)>;
+        A GetOrElse(A alternative);
+        IMonad<B> Map<B>(Func<A, B> f);
+        (IMonad<X>, IMonad<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc);
+        IMonad<(A, B)> Zip<B>(IMonad<B> other);
     }
 
-    public interface IMonadLike<A, Repr> : IMonad<A> where Repr : IMonadLike<A, Repr>
+    public interface IMonad<A, MM> : IMonad<A> where MM : IMonad<A, MM>
     {
-        Repr Filter(Func<A, bool> p);
-        Repr FilterNot(Func<A, bool> p);
+        new MM Filter(Func<A, bool> p);
+        new MM FilterNot(Func<A, bool> p);
     }
 
-    public abstract class MonadLike<A, Repr> : Traversable<A>, IMonadLike<A, Repr> where Repr : IMonadLike<A, Repr>
+    public abstract class MonadBase<A, MM> : IMonad<A, MM> where MM : MonadBase<A, MM>
     {
         public abstract bool IsEmpty { get; }
-
         public bool NonEmpty => !IsEmpty;
 
-        public bool Contains(A item) => GetIfPresent(out A value) && Equals(value, item);
-
-        public bool Exists(Func<A, bool> p) => GetIfPresent(out A value) && p(value);
-
-        public Repr Filter(Func<A, bool> p) => Filter(p, true);
-
-        public Repr FilterNot(Func<A, bool> p) => Filter(p, false);
-
-        public bool ForAll(Func<A, bool> p) => !GetIfPresent(out A value) || p(value);
-
+        public bool Contains(A item) => Exist(it => Equals(item, it));
+        public bool Exist(Func<A, bool> p) => GetIfPresent(out A value) && p(value);
+        public abstract MM Filter(Func<A, bool> p);
+        public abstract MM FilterNot(Func<A, bool> p);
+        public Unit Foreach(Action<A> action) => Unit(() =>
+        {
+            if (GetIfPresent(out A value))
+            {
+                action(value);
+            }
+        });
         public abstract bool GetIfPresent(out A value);
+        public A GetOrElse(A alternative) => GetIfPresent(out A value) ? value : alternative;
 
-        public override Unit Foreach(Action<A> action) => Unit(() =>
-        {
-            if (GetIfPresent(out A item))
-            {
-                action(item);
-            }
-        });
+        // protected members
 
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
-        {
-            if (GetIfPresent(out A item) && p(item))
-            {
-                action(item);
-            }
-        });
+        protected MM This => (MM)this;
 
-        public override IEnumerator<A> GetEnumerator()
+        protected That Collect<B, That, MB>(Func<A, Option<B>> f, MB builder)
+            where That : MonadBase<B, That>
+            where MB : IMonadBuilder<B, That> => FlatMap<B, That, MB>(f, builder);
+        protected MM Filter<MB>(Func<A, bool> p, bool isTruthly, MB builder) where MB : IMonadBuilder<A, MM> =>
+            Exist(p) == isTruthly
+                ? This
+                : builder.Build();
+        protected That FlatMap<B, That, MB>(Func<A, IMonad<B>> f, MB builder)
+            where That : MonadBase<B, That>
+            where MB : IMonadBuilder<B, That>
         {
-            if (GetIfPresent(out A item))
+            if (GetIfPresent(out A a) && f(a).GetIfPresent(out B b))
             {
-                yield return item;
+                builder.SetValue(b);
             }
+
+            return builder.Build();
+        }
+        protected That Map<B, That, MB>(Func<A, B> f, MB builder)
+            where That : MonadBase<B, That>
+            where MB : IMonadBuilder<B, That>
+        {
+            if (GetIfPresent(out A value))
+            {
+                builder.SetValue(f(value));
+            }
+
+            return builder.Build();
+        }
+        protected (Left, Right) Unzip<X, Y, Left, Right, LeftBuilder, RightBuilder>(
+            Func<A, (X, Y)> toPairFunc,
+            LeftBuilder leftBuilder,
+            RightBuilder rightBuilder)
+            where Left : MonadBase<X, Left>
+            where Right : MonadBase<Y, Right>
+            where LeftBuilder : IMonadBuilder<X, Left>
+            where RightBuilder : IMonadBuilder<Y, Right>
+        {
+            if (GetIfPresent(out A value))
+            {
+                (var x, var y) = toPairFunc(value);
+
+                leftBuilder.SetValue(x);
+                rightBuilder.SetValue(y);
+            }
+
+            return (leftBuilder.Build(), rightBuilder.Build());
+        }
+        protected Zipped Zip<B, Zipped, MB>(IMonad<B> other, MB builder)
+            where Zipped : MonadBase<(A, B), Zipped>
+            where MB : IMonadBuilder<(A, B), Zipped>
+        {
+            if (GetIfPresent(out A a) && other.GetIfPresent(out B b))
+            {
+                builder.SetValue((a, b));
+            }
+
+            return builder.Build();
         }
 
-        public override Stream<A> ToStream() =>
-            GetIfPresent(out A item) ? Stream(item) : Streams.Empty<A>();
+        protected abstract IMonad<B> MonadCollect<B>(Func<A, Option<B>> f);
+        protected abstract IMonad<B> MonadFlatMap<B>(Func<A, IMonad<B>> f);
+        protected abstract IMonad<B> MonadMap<B>(Func<A, B> f);
+        protected abstract (IMonad<X>, IMonad<Y>) MonadUnzip<X, Y>(Func<A, (X, Y)> toPairFunc);
+        protected abstract IMonad<(A, B)> MonadZip<B>(IMonad<B> other);
 
-        // Protected members
+        // private members
 
-        protected abstract IMonadBuilder<A, Repr> GetBuilder();
-
-        protected That FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) where That : IMonad<B> =>
-            GetIfPresent(out A value)
-                ? builder.SetValueFrom(f(value)).Build()
-                : builder.Clear().Build();
-
-        protected That Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) where That : IMonad<B> =>
-            GetIfPresent(out A value)
-                ? builder.SetValue(f(value)).Build()
-                : builder.Clear().Build();
-
-        protected That Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) where That : IMonad<(A, B)> =>
-            GetIfPresent(out A thisValue) && other.GetIfPresent(out B otherValue)
-                ? builder.SetValue((thisValue, otherValue)).Build()
-                : builder.Clear().Build();
-
-        protected That ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) where That : IMonad<(A, int)> =>
-            GetIfPresent(out A thisValue)
-                ? builder.SetValue((thisValue, 0)).Build()
-                : builder.Clear().Build();
-
-        // Private members
-
-        private Repr Filter(Func<A, bool> p, bool isTruthly)
-        {
-            var builder = GetBuilder();
-            return GetIfPresent(out A value) && p(value) == isTruthly
-                ? builder.SetValueFrom(this).Build()
-                : builder.Clear().Build();
-        }
-
-        That IMonad<A>.FlatMap<B, That>(Func<A, IMonad<B>> f, IMonadBuilder<B, That> builder) => FlatMap(f, builder);
-
-        That IMonad<A>.Map<B, That>(Func<A, B> f, IMonadBuilder<B, That> builder) => Map(f, builder);
-
-        That IMonad<A>.Zip<B, That>(Option<B> other, IMonadBuilder<(A, B), That> builder) => Zip(other, builder);
-
-        That IMonad<A>.ZipWithIndex<That>(IMonadBuilder<(A, int), That> builder) => ZipWithIndex(builder);
+        IMonad<B> IMonad<A>.Collect<B>(Func<A, Option<B>> f) => MonadCollect(f);
+        IMonad<A> IMonad<A>.Filter(Func<A, bool> p) => Filter(p);
+        IMonad<A> IMonad<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        IMonad<B> IMonad<A>.FlatMap<B>(Func<A, IMonad<B>> f) => MonadFlatMap(f);
+        IMonad<B> IMonad<A>.Map<B>(Func<A, B> f) => MonadMap(f);
+        (IMonad<X>, IMonad<Y>) IMonad<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => MonadUnzip(toPairFunc);
+        IMonad<(A, B)> IMonad<A>.Zip<B>(IMonad<B> other) => MonadZip(other);
     }
 
-    public interface IMonadBuilder<A, M> : IBuilder<M> where M : IMonad<A>
+    public interface IMonadBuilder<A, MM> : IBuilder<MM> where MM : IMonad<A, MM>
     {
-        IMonadBuilder<A, M> Clear();
-
-        IMonadBuilder<A, M> SetValue(A value);
-
-        IMonadBuilder<A, M> SetValueFrom(IMonad<A> other);
-    }
-
-    public abstract class MonadBuilder<A, M> : IMonadBuilder<A, M> where M : IMonad<A>
-    {
-        private Option<A> option = null;
-
-        public IMonadBuilder<A, M> Clear()
-        {
-            option = None<A>();
-
-            return this;
-        }
-
-        public IMonadBuilder<A, M> SetValue(A value)
-        {
-            option = Some(value);
-
-            return this;
-        }
-
-        public IMonadBuilder<A, M> SetValueFrom(IMonad<A> other) =>
-            other.GetIfPresent(out A value)
-                ? SetValue(value)
-                : Clear();
-
-        public abstract M Build();
-
-        protected Option<A> GetOption() => option ?? None<A>();
+        void SetValue(A value);
     }
 }

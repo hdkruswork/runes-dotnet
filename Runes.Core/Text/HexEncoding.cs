@@ -1,7 +1,7 @@
-﻿using Runes.Collections.Immutable;
+﻿using Runes.Collections;
 using System.Text;
 
-using static Runes.Collections.Immutable.Streams;
+using static Runes.Predef;
 
 namespace Runes.Text
 {
@@ -29,7 +29,7 @@ namespace Runes.Text
 
         public string Decode(byte[] data)
         {
-            var str = Stream(data)
+            var str = Array(data)
                 .Map(b =>
                 {
                     var hiChar = HexAlphabet.Chars[b >> 0x04];
@@ -57,18 +57,19 @@ namespace Runes.Text
 
         public byte[] Encode(string text) =>
             text.ToLower()
+                .ToCharArray()
                 .ToStream()
                 .Sliding(2, 2)
-                .Collect(pair =>
+                .Map(pair =>
                 {
-                    var (hiChar, lowChar) = (pair[0], pair[1]);
+                    var (hiChar, lowChar, _) = pair;
                     var hiIndex = HexAlphabet.Chars.IndexOf(hiChar);
                     var lowIndex = HexAlphabet.Chars.IndexOf(lowChar);
                     byte hi = hiIndex >= 0 ? (byte)(hiIndex << 0x04) : byte.MinValue;
                     byte low = lowIndex >= 0 ? (byte)lowIndex : byte.MinValue;
                     return (byte)(hi | low);
                 })
-                .ToArray();
+                .ToMArray();
     }
 
     public static class HexAlphabet

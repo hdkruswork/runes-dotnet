@@ -1,13 +1,10 @@
-﻿using Runes.Collections;
-using Runes.Collections.Immutable;
-using System;
-using System.Collections.Generic;
-using static Runes.Collections.Immutable.Streams;
+﻿using System;
+
 using static Runes.Predef;
 
 namespace Runes
 {
-    public abstract class Try<A> : Traversable<A>
+    public abstract class Try<A>
     {
         public bool IsSuccess => GetIfSuccess(out A _);
         public bool IsFailure => GetIfFailure(out Exception _);
@@ -27,23 +24,6 @@ namespace Runes
             }
         }
         public abstract Try<B> FlatMap<B>(Func<A, Try<B>> f);
-        public override Unit Foreach(Action<A> action) => Unit(() =>
-        {
-            if (GetIfSuccess(out A value))
-                action(value);
-        });
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
-        {
-            if (GetIfSuccess(out A value) && p(value))
-                action(value);
-        });
-        public override IEnumerator<A> GetEnumerator()
-        {
-            if (GetIfSuccess(out A res))
-            {
-                yield return res;
-            }
-        }
         public bool GetIfFailure(out Exception ex) => GetIfFailure<Exception>(out ex);
         public abstract bool GetIfFailure<E>(out E ex) where E : Exception;
         public abstract bool GetIfSuccess(out A result);
@@ -55,7 +35,6 @@ namespace Runes
         public Try<A> RecoverWith<E>(Func<E, Try<A>> recoverFunc) where E : Exception =>
             GetIfFailure(out E ex) ? recoverFunc(ex) : this;
         public Option<A> ToOption() => GetIfSuccess(out A result) ? Some(result) : None<A>();
-        public override Stream<A> ToStream() => GetIfSuccess(out A res) ? Stream(res) : Empty<A>();
         public Try<B> Transform<B>(Func<A, Try<B>> successTranformation, Func<Exception, Try<B>> failureTransformation)
         {
             switch (this)

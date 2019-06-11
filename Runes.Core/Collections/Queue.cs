@@ -1,11 +1,8 @@
-﻿using Runes.Collections.Immutable;
-using System;
-using System.Collections.Generic;
-using static Runes.Predef;
+﻿using static Runes.Predef;
 
 namespace Runes.Collections.Mutable
 {
-    public class Queue<A> : Traversable<A>
+    public class Queue<A>
     {
         public Queue()
         {
@@ -31,7 +28,6 @@ namespace Runes.Collections.Mutable
                 return InnerPeek();
             }
         }
-
         public Option<A> Dequeue()
         {
             lock (Head)
@@ -54,30 +50,6 @@ namespace Runes.Collections.Mutable
                 return res;
             }
         }
-
-        public override Unit Foreach(Action<A> action) => Unit(() =>
-        {
-            var curr = Head.Next;
-            while (curr != null)
-            {
-                action(curr.Info);
-                curr = curr.Next;
-            }
-        });
-
-        public override Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
-        {
-            var curr = Head.Next;
-            while (curr != null && p(curr.Info))
-            {
-                action(curr.Info);
-                curr = curr.Next;
-            }
-        });
-
-        public override IEnumerator<A> GetEnumerator() => ToList().GetEnumerator();
-
-        public override Stream<A> ToStream() => ToList().ToStream();
 
         private QueueNode Head { get; set; }
         private QueueNode Rear { get; set; }

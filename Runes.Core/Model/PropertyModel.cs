@@ -1,5 +1,7 @@
-﻿using Runes.Collections.Immutable;
+﻿using Runes.Collections;
 using System;
+
+using static Runes.Predef;
 
 namespace Runes.Model
 {
@@ -7,7 +9,7 @@ namespace Runes.Model
     {
         private A value = default;
 
-        private List<Action<A>> subscribers = List<Action<A>>.Empty;
+        private List<Action<A>> subscribers = EmptyList<Action<A>>();
 
         public A Value
         {
@@ -36,7 +38,7 @@ namespace Runes.Model
 
         public IObservable<A> UnsubscribeAll()
         {
-            subscribers = List<Action<A>>.Empty;
+            subscribers = EmptyList<Action<A>>();
             return this;
         }
 

@@ -2,10 +2,8 @@
 
 namespace Runes
 {
-    public abstract class Option<A> : MonadLike<A, Option<A>>
+    public abstract class Option<A> : MonadBase<A, Option<A>>
     {
-        public static IMonadBuilder<A, Option<A>> Builder => OptionBuilder.Object;
-
         internal static readonly Option<A> None = new None<A>();
 
         public bool Equals(Option<A> other)
@@ -18,33 +16,57 @@ namespace Runes
                 return false;
         }
 
-        public Option<B> FlatMap<B>(Func<A, Option<B>> f) => FlatMap(f, Option<B>.Builder);
+        public Option<B> Collect<B>(Func<A, Option<B>> f) =>
+            Collect<B, Option<B>, IMonadBuilder<B, Option<B>>>(f, Option<B>.CreateMonadBuilder());
+        
+        public override Option<A> Filter(Func<A, bool> p) =>
+            Filter(p, true, CreateMonadBuilder());
 
-        public A GetOrElse(A alternative) => GetIfPresent(out A res) ? res : alternative;
+        public override Option<A> FilterNot(Func<A, bool> p) =>
+            Filter(p, false, CreateMonadBuilder());
+
+        public Option<B> FlatMap<B>(Func<A, IMonad<B>> f) =>
+            FlatMap<B, Option<B>, IMonadBuilder<B, Option<B>>>(f, Option<B>.CreateMonadBuilder());
 
         public A GetOrElse(Lazy<A> alternative) => GetIfPresent(out A res) ? res : alternative;
 
-        public Option<B> Map<B>(Func<A, B> f) => Map(f, Option<B>.Builder);
+        public A GetOrDefault() => GetIfPresent(out A res) ? res : default;
+
+        public Option<B> Map<B>(Func<A, B> f) =>
+            Map<B, Option<B>, IMonadBuilder<B, Option<B>>>(f, Option<B>.CreateMonadBuilder());
 
         public Option<A> OrElse(Option<A> alternative) => NonEmpty ? this : alternative;
 
         public Option<A> OrElse(Lazy<Option<A>> alternative) => NonEmpty ? this : alternative;
 
-        public Option<(A, B)> Zip<B>(Option<B> other) => Zip(other, Option<(A, B)>.Builder);
+        public (Option<X>, Option<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) =>
+            Unzip<X, Y, Option<X>, Option<Y>, IMonadBuilder<X, Option<X>>, IMonadBuilder<Y, Option<Y>>>(toPairFunc, Option<X>.CreateMonadBuilder(), Option<Y>.CreateMonadBuilder());
 
-        public Option<(A, int)> ZipWithIndex() => ZipWithIndex(Option<(A, int)>.Builder);
+        public Option<(A, B)> Zip<B>(IMonad<B> other) =>
+            Zip<B, Option<(A, B)>, IMonadBuilder<(A, B), Option<(A, B)>>>(other, Option<(A, B)>.CreateMonadBuilder());
 
-        protected override IMonadBuilder<A, Option<A>> GetBuilder() => Builder;
+        // protected members
+
+        protected static IMonadBuilder<A, Option<A>> CreateMonadBuilder() => new OptionBuilder();
+
+        protected override IMonad<B> MonadCollect<B>(Func<A, Option<B>> f) => Collect(f);
+        protected override IMonad<B> MonadFlatMap<B>(Func<A, IMonad<B>> f) => FlatMap(f);
+        protected override IMonad<B> MonadMap<B>(Func<A, B> f) => Map(f);
+        protected override (IMonad<X>, IMonad<Y>) MonadUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) => Unzip(toPairFunc);
+        protected override IMonad<(A, B)> MonadZip<B>(IMonad<B> other) => Zip(other);
 
         private protected Option() { }
 
-        private sealed class OptionBuilder : MonadBuilder<A, Option<A>>
+        // inner classes
+
+        public sealed class OptionBuilder : IMonadBuilder<A, Option<A>>
         {
-            public static readonly OptionBuilder Object = new OptionBuilder();
+            private Option<A> option = Predef.None<A>();
 
-            public override Option<A> Build() => GetOption();
+            public Option<A> Build() => option;
 
-            private OptionBuilder() { }
+            public void SetValue(A value) =>
+                option = Equals(value, null) ? Predef.None<A>() : Predef.Some(value);
         }
     }
 

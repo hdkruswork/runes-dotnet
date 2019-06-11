@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Runes.Collections;
+using System;
+using System.Numerics;
 
 namespace Runes
 {
@@ -148,6 +150,150 @@ namespace Runes
                 f(array[i]);
             }
         });
+
+        public static Array<char> ToArray(this string text) => Array(text.ToCharArray());
+
+        public static Array<A> ToArray<A>(this A[] array) => Array(array);
+
+        public static MutableArray<A> ToMArray<A>(this A[] array) => MArray(array);
+
+        public static Array<A> ToArray<A>(this ICollection<A> collection)
+        {
+            if (collection is Array<A> array)
+            {
+                return array;
+            }
+
+            var traversable = ToTraversable(collection);
+            return Collections.Array<A>.CreateArrayFrom(traversable);
+        }
+
+        public static MutableArray<A> ToMArray<A>(this ICollection<A> collection)
+        {
+            if (collection is MutableArray<A> array)
+            {
+                return array;
+            }
+
+            var traversable = ToTraversable(collection);
+            return Collections.MutableArray<A>.CreateArrayFrom(traversable);
+        }
+
+        public static List<A> ToList<A>(this ICollection<A> collection)
+        {
+            if (collection is List<A> list)
+            {
+                return list;
+            }
+
+            var res = EmptyList<A>();
+            var traversable = ToTraversable(collection);
+            traversable.Reversed().Foreach(it => res = res.Prepend(it));
+
+            return res;
+        }
+
+        public static Stream<A> ToStream<A>(this A[] array)
+        {
+            Stream<A> GetStream(A[] arr, long start) =>
+                start < arr.LongLength
+                    ? Stream(arr[start], () => GetStream(arr, start + 1))
+                    : EmptyStream<A>();
+
+            return GetStream(array, 0);
+        }
+
+        public static Stream<A> ToStream<A>(this ICollection<A> collection)
+        {
+            if (collection is Stream<A> stream)
+            {
+                return stream;
+            }
+
+            return collection.HeadOption.GetIfPresent(out A head)
+                ? Stream(head, () => collection.Tail.ToStream())
+                : EmptyStream<A>();
+        }
+
+        public static ITraversable<A> ToTraversable<A>(this ICollection<A> collection)
+        {
+            if (collection is ITraversable<A> traversable)
+            {
+                return traversable;
+            }
+
+            throw new NotSupportedException("Non traversable collections cannot be handled as traversabe");
+        }
+
+        #endregion
+
+        #region Lists
+
+        public static List<A> EmptyList<A>() => Lists.Empty<A>();
+
+        public static List<A> List<A>(params A[] items)
+        {
+            var res = EmptyList<A>();
+            if (items != null)
+            {
+                for (var idx = items.LongLength - 1; idx >= 0; idx--)
+                {
+                    res = List(items[idx], res);
+                } 
+            }
+
+            return res;
+        }
+        public static List<A> List<A>(A head, List<A> tail) => Lists.Create(head, tail);
+
+        public static List<A> ToList<A>(this ITraversable<A> traversable)
+        {
+            var builder = Collections.List<A>.CreateListBuilder();
+            traversable.FoldLeft(Unit(), (_, it) => Unit(() => builder.Add(it)));
+
+            return builder.Build();
+        }
+
+        #endregion
+
+        #region Arrays
+
+        public static Array<A> EmptyArray<A>() => Collections.Array<A>.Empty;
+        public static MutableArray<A> EmptyMArray<A>() => MutableArray<A>.Empty;
+
+        public static Array<A> Array<A>(params A[] array) =>
+            array != null && array.Length > 0
+                ? Array(array, 0, array.LongLength, 1)
+                : EmptyArray<A>();
+
+        internal static Array<A> Array<A>(A[] array, long startIndex, long length, int step) =>
+            new Array<A>(array, startIndex, length, step);
+
+        public static MutableArray<A> MArray<A>(params A[] array) =>
+            array != null && array.Length > 0
+                ? MArray(array, 0, array.LongLength, 1)
+                : EmptyMArray<A>();
+
+        internal static MutableArray<A> MArray<A>(A[] array, long startIndex, long length, int step) =>
+            new MutableArray<A>(array, startIndex, length, step);
+
+        #endregion
+
+        #region Streams
+
+        public static Stream<A> EmptyStream<A>() => Collections.Stream<A>.Empty;
+
+        public static Stream<A> Flatten<A, CC>(this Stream<CC> stream) where CC : ITraversable<A, CC> =>
+            stream.HeadOption.GetIfPresent(out CC head)
+                ? head.ToStream().Append(() => stream.Tail.Flatten<A, CC>())
+                : EmptyStream<A>();
+
+        public static Stream<A> Stream<A>(A head) => Stream(head, EmptyStream<A>());
+        public static Stream<A> Stream<A>(A head, Stream<A> tail) => new Stream<A>.NonEmptyStream(head, tail);
+        public static Stream<A> Stream<A>(A head, Func<Stream<A>> tailFunc) => new Stream<A>.NonEmptyStream(head, tailFunc);
+
+        public static Stream<BigInteger> StartStream(BigInteger start, int step = 1) =>
+            Stream(start, () => StartStream(start + step, step));
 
         #endregion
     }
