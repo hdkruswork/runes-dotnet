@@ -1,10 +1,9 @@
 ﻿using Runes.Collections;
-using Runes.Collections.Immutable;
 using System;
 using System.Globalization;
 using System.Numerics;
 
-using static Runes.Collections.Immutable.Arrays;
+using static Runes.Predef;
 
 namespace Runes.Calc
 {
@@ -87,30 +86,16 @@ namespace Runes.Calc
         public static A Min<A>(this ITraversable<A> traversable, Func<A, A, int> comparator, A initialMinValue) =>
             traversable.FoldLeft(initialMinValue, (agg, curr) => comparator(agg, curr) < 0 ? agg : curr);
 
-        public static Option<A> Max<A>(this A[] array, Func<A, A, int> comparator)
-        {
-            var immArray = ImmutableArray(array);
-
-            return immArray
-                .First
-                .Map(first => Max(immArray.ToStream(1L), comparator, first));
-        }
-        public static Option<A> Min<A>(this A[] array, Func<A, A, int> comparator)
-        {
-            var immArray = ImmutableArray(array);
-
-            return immArray
-                .First
-                .Map(first => Min(immArray.ToStream(1L), comparator, first));
-        }
-        public static Option<A> Max<A>(this Stream<A> stream, Func<A, A, int> comparator) =>
-            stream
+        public static Option<A> Max<A>(this A[] array, Func<A, A, int> comparator) => Max(Array(array), comparator);
+        public static Option<A> Min<A>(this A[] array, Func<A, A, int> comparator) => Min(Array(array), comparator);
+        public static Option<A> Max<A>(this ITraversable<A> traversable, Func<A, A, int> comparator) =>
+            traversable
                 .HeadOption
-                .Map(head => Max(stream.Tail, comparator, head));
-        public static Option<A> Min<A>(this Stream<A> stream, Func<A, A, int> comparator) =>
-            stream
+                .Map(first => Max(traversable.Tail, comparator, first));
+        public static Option<A> Min<A>(this ITraversable<A> traversable, Func<A, A, int> comparator) =>
+            traversable
                 .HeadOption
-                .Map(head => Min(stream.Tail, comparator, head));
+                .Map(first => Min(traversable.Tail, comparator, first));
 
         #endregion
 

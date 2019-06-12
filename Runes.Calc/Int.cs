@@ -1,9 +1,8 @@
-﻿using Runes.Collections.Immutable;
+﻿using Runes.Collections;
 using System;
 using System.Numerics;
 
 using static Runes.Calc.Predef;
-using static Runes.Collections.Immutable.Streams;
 using static Runes.Predef;
 
 namespace Runes.Calc
@@ -21,38 +20,44 @@ namespace Runes.Calc
         public static implicit operator Int(long value) => Int(value);
         public static implicit operator Int(ulong value) => Int(value);
         public static implicit operator Int(BigInteger value) => Int(value);
+        public static implicit operator BigInteger(Int num) => num.value;
 
         public static explicit operator float(Int num) => (float)num.value;
         public static explicit operator double(Int num) => (double)num.value;
 
         public static Int operator %(Int a, Int b) => a.Remainder(b);
 
-        public static readonly Int MinusOne = Int(-1);
-        public static readonly Int One = Int(1);
-        public static readonly Int Zero = Int(0);
+        public static readonly Int MinusOne = -1;
+        public static readonly Int One = 1;
+        public static readonly Int Zero = 0;
 
         public static Stream<Int> AllValues
         {
             get
             {
-                Stream<Int> getNextStream(Int value) =>
-                    Stream(value, Stream(-value, Lazy(() => getNextStream(value + 1))));
+                var zipped = StartStream(1)
+                    .Zip(StartStream(-1, -1))
+                    .FlatMap(pair => {
+                        (Int pos, Int neg) = pair;
+                        return Stream(pos, Stream(neg));
+                    });
 
-                return Stream(Zero, Lazy(() => getNextStream(1)));
+                return Stream(Zero).Append(() => zipped);
             }
         }
 
-        public static Stream<Int> StartStream(Int startingValue) =>
-            Stream(startingValue, Lazy(() => StartStream(startingValue + 1)));
+        public static Stream<Int> GetValuesFrom(Int from) =>
+            StartStream(from)
+                .Map(i => Int(i));
 
-        public static Stream<Int> StartStream(Int from, Int to) => 
-            from <= to
-                ? Stream(from, Lazy(() => StartStream(from + 1, to)))
-                : Empty<Int>();
+        public static Stream<Int> GetValuesInRange(Int from, Int to, bool inclusive = true) => 
+            StartStream(from)
+                .TakeWhile(num => inclusive ? num <= to : num < to)
+                .Map(n => Int(n));
 
-        public static Int GreatestCommonDivisor(Int a, Int b) => BigInteger.GreatestCommonDivisor(a.value, b.value);
+        public static Int GreatestCommonDivisor(Int a, Int b) => BigInteger.GreatestCommonDivisor(a, b);
 
-        public static Int Abs(Int num) => num.value.Sign == BigInteger.One.Sign ? num : BigInteger.Abs(num.value);
+        public static Int Abs(Int num) => num.Sign == One.Sign ? num : Int(BigInteger.Abs(num));
 
         // Instance members
 
@@ -60,11 +65,11 @@ namespace Runes.Calc
 
         public override int Sign => value.Sign;
 
-        public override bool IsOne => value == 1;
+        public override bool IsOne => this == One;
 
-        public override bool IsZero => value == 0;
+        public override bool IsZero => this == Zero;
 
-        public override int CompareTo(Int another) => value.CompareTo(another.value);
+        public override int CompareTo(Int another) => value.CompareTo(another);
 
         public override Int Add(Int another)
         {
@@ -94,7 +99,7 @@ namespace Runes.Calc
             }
         }
 
-        public Rational ExactDivide(Int another) => Rational(value, another.value);
+        public Rational ExactDivide(Int another) => Rational(this, another);
 
         public override Int Multiply(Int another)
         {
@@ -126,15 +131,15 @@ namespace Runes.Calc
             }
         }
 
-        public double Log() => BigInteger.Log(value);
+        public double Log() => BigInteger.Log(this);
 
-        public Int Remainder(Int another) => this - (this / another) * another;
+        public Int Remainder(Int another) => BigInteger.Remainder(this, another);
 
         public override bool Equals(object obj) => obj is Int i && EqualsTo(i);
 
-        public bool Equals(BigInteger other) => value.Equals(other);
+        public bool Equals(BigInteger other) => Equals(value, other);
 
-        public bool Equals(int other) => value.Equals(other);
+        public bool Equals(int other) => Equals(value, other);
 
         public override int GetHashCode() => value.GetHashCode();
 
