@@ -23,7 +23,7 @@ namespace Runes
         IMonad<(A, B)> Zip<B>(IMonad<B> other);
     }
 
-    public interface IMonad<A, MM> : IMonad<A> where MM : IMonad<A, MM>
+    public interface IMonad<A, out MM> : IMonad<A> where MM : IMonad<A, MM>
     {
         new MM Filter(Func<A, bool> p);
         new MM FilterNot(Func<A, bool> p);
@@ -92,7 +92,7 @@ namespace Runes
         {
             if (GetIfPresent(out A value))
             {
-                (var x, var y) = toPairFunc(value);
+                var (x, y) = toPairFunc(value);
 
                 leftBuilder.SetValue(x);
                 rightBuilder.SetValue(y);
@@ -129,7 +129,7 @@ namespace Runes
         IMonad<(A, B)> IMonad<A>.Zip<B>(IMonad<B> other) => MonadZip(other);
     }
 
-    public interface IMonadBuilder<A, MM> : IBuilder<MM> where MM : IMonad<A, MM>
+    public interface IMonadBuilder<in A, out MM> : IBuilder<MM> where MM : IMonad<A, MM>
     {
         void SetValue(A value);
     }

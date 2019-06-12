@@ -31,7 +31,7 @@ namespace Runes.Collections
         ICollection<(A, int)> ZipWithIndex();
     }
 
-    public interface ICollection<A, CC> : ICollection<A> where CC : ICollection<A, CC>
+    public interface ICollection<A, out CC> : ICollection<A> where CC : ICollection<A, CC>
     {
         new CC Tail { get; }
 

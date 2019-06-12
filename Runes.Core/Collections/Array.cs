@@ -10,9 +10,9 @@ namespace Runes.Collections
 
         public static implicit operator Array<A>(A[] array) => Array(array);
 
-        public static Array<A> CreateFrom(A[] array) => new Array<A>(array, 0, array.LongLength, 1);
-        public static Array<A> CreateArrayFrom(ITraversable<A> traversable) =>
-            CreateArrayFrom(traversable, CreateFrom);
+        public static Array<A> CreateFrom(A[] array) => new Array<A>(array, 0, array.LongLength);
+        public static Array<A> CreateArrayFrom(IIterable<A> iterable) =>
+            CreateArrayFrom(iterable, CreateFrom);
 
         public Array<B> FlatMap<B>(Func<A, ICollection<B>> f) =>
             FlatMap(f, Array<B>.CreateFrom);
@@ -38,8 +38,8 @@ namespace Runes.Collections
         protected override IArray<(A, int)> ArrayZipWithIndex() => ZipWithIndex();
 
         protected override Array<A> GetEmptyArray() => Empty;
-        protected override Array<A> CreateArray(A[] array, long startIndex, long length, int step) =>
-            new Array<A>(array, startIndex, length, step);
+        protected override Array<A> CreateArray(A[] arr, long start, long length, int stp) =>
+            new Array<A>(arr, start, length, stp);
 
         protected override Array<A> FromList(List<A> list) =>
             CreateArrayFrom(list, array => CreateArray(array, 0, array.LongLength, 1));

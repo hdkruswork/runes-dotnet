@@ -48,7 +48,7 @@ namespace Runes
     {
         public override bool IsKnown => false;
 
-        public override string ToString() => $"Unknown";
+        public override string ToString() => "Unknown";
 
         internal Unknown() { }
     }

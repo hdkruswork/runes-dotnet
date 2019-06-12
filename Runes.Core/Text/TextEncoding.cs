@@ -1,11 +1,11 @@
 ﻿namespace Runes.Text
 {
-    public interface ITextDecoder<T>
+    public interface ITextDecoder<in T>
     {
         string Decode(T data);
     }
 
-    public interface ITextEncoder<T>
+    public interface ITextEncoder<out T>
     {
         T Encode(string text);
     }

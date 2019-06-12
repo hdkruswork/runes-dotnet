@@ -1,5 +1,4 @@
-﻿using Runes.Collections;
-using System.Text;
+﻿using System.Text;
 
 using static Runes.Predef;
 
@@ -40,13 +39,13 @@ namespace Runes.Text
                 .FoldLeft(new StringBuilder(), (sb, b) => sb.Append(b))
                 .ToString();
 
-            return constraint == TextCaseConstraint.UPPERCASED
+            return constraint.Equals(TextCaseConstraint.UPPERCASED)
                 ? str.ToUpper()
                 : str;
         }
 
         public HexDecoder WithCase(TextCaseConstraint constraint) =>
-            constraint == Object.constraint ? Object : new HexDecoder(constraint);
+            constraint.Equals(Object.constraint) ? Object : new HexDecoder(constraint);
     }
 
     public sealed class HexEncoder : ITextEncoder<byte[]>

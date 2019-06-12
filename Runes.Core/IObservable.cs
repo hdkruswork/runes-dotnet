@@ -8,7 +8,7 @@ namespace Runes
         IObservable UnsubscribeAll();
     }
 
-    public interface IObservable<A>
+    public interface IObservable<out A>
     {
         IObservable<A> Subscribe(Action<A> onUpdate);
         IObservable<A> UnsubscribeAll();

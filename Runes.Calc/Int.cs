@@ -119,7 +119,7 @@ namespace Runes.Calc
 
         public override Int Negate() => -value;
 
-        public override Int Substract(Int another)
+        public override Int Subtract(Int another)
         {
             if (another.IsZero)
             {
@@ -139,7 +139,7 @@ namespace Runes.Calc
 
         public bool Equals(BigInteger other) => Equals(value, other);
 
-        public bool Equals(int other) => Equals(value, other);
+        public bool Equals(int other) => Equals(value, new BigInteger(other));
 
         public override int GetHashCode() => value.GetHashCode();
 

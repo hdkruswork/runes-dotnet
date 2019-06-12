@@ -11,14 +11,12 @@ namespace Runes.Collections
 
         private sealed class NonEmptyList<A> : List<A>
         {
-            public A Head { get; }
-
-            public override Option<A> HeadOption => Some(Head);
+            public override Option<A> HeadOption { get; }
             public override List<A> Tail { get; }
 
             internal NonEmptyList(A head, List<A> tail)
             {
-                Head = head;
+                HeadOption = Some(head);
                 Tail = tail;
             }
         }
@@ -34,7 +32,7 @@ namespace Runes.Collections
         }
     }
 
-    public abstract class List<A> : TraversableBase<A, List<A>>, IList<A, List<A>>
+    public abstract class List<A> : IterableBase<A, List<A>>, IList<A, List<A>>
     {
         public static ListBuilder CreateListBuilder() => new ListBuilder();
 
@@ -50,9 +48,9 @@ namespace Runes.Collections
             return builder.Build();
         }
 
-        public List<A> Append(ITraversable<A> traversable) => HeadOption.GetIfPresent(out A head)
-            ? List(head, Tail.Append(traversable))
-            : traversable.ToList();
+        public List<A> Append(IIterable<A> iterable) => HeadOption.GetIfPresent(out A head)
+            ? List(head, Tail.Append(iterable))
+            : iterable.ToList();
 
         public List<B> Collect<B>(Func<A, Option<B>> f) =>
             Collect<B, List<B>, List<B>.ListBuilder>(f, List<B>.CreateListBuilder());
@@ -72,10 +70,10 @@ namespace Runes.Collections
         public List<A> Prepend(A item) =>
             List(item, this);
 
-        public List<A> Prepend(ITraversable<A> traversable)
+        public List<A> Prepend(IIterable<A> iterable)
         {
             var reversed = EmptyList<A>();
-            traversable.Foreach(it => reversed = reversed.Prepend(it));
+            iterable.Foreach(it => reversed = reversed.Prepend(it));
             
             var res = this;
             reversed.Foreach(it => res = res.Prepend(it));
@@ -106,13 +104,13 @@ namespace Runes.Collections
 
         // protected members
 
-        protected override ITraversable<B> TraversableAs<B>() => As<B>();
-        protected override ITraversable<B> TraversableCollect<B>(Func<A, Option<B>> f) => Collect(f);
-        protected override ITraversable<B> TraversableFlatMap<B>(Func<A, ICollection<B>> f) => FlatMap(f);
-        protected override ITraversable<B> TraversableMap<B>(Func<A, B> f) => Map(f);
-        protected override (ITraversable<X>, ITraversable<Y>) TraversableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) => Unzip(toPairFunc);
-        protected override ITraversable<(A, B)> TraversableZip<B>(ICollection<B> other) => Zip(other);
-        protected override ITraversable<(A, int)> TraversableZipWithIndex() => ZipWithIndex();
+        protected override IIterable<B> IterableAs<B>() => As<B>();
+        protected override IIterable<B> IterableCollect<B>(Func<A, Option<B>> f) => Collect(f);
+        protected override IIterable<B> IterableFlatMap<B>(Func<A, ICollection<B>> f) => FlatMap(f);
+        protected override IIterable<B> IterableMap<B>(Func<A, B> f) => Map(f);
+        protected override (IIterable<X>, IIterable<Y>) IterableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) => Unzip(toPairFunc);
+        protected override IIterable<(A, B)> IterableZip<B>(ICollection<B> other) => Zip(other);
+        protected override IIterable<(A, int)> IterableZipWithIndex() => ZipWithIndex();
 
         // private members
 
@@ -120,12 +118,12 @@ namespace Runes.Collections
 
         IList<B> IList<A>.As<B>() => As<B>();
         IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
-        IGrowable<A> IGrowable<A>.Append(ITraversable<A> traversable) => Append(traversable);
+        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
         IList<B> IList<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
         IList<B> IList<A>.FlatMap<B>(Func<A, ICollection<B>> f) => FlatMap(f);
         IList<B> IList<A>.Map<B>(Func<A, B> f) => Map(f);
         IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
-        IGrowable<A> IGrowable<A>.Prepend(ITraversable<A> traversable) => Prepend(traversable);
+        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
         (IList<X>, IList<Y>) IList<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => Unzip(toPairFunc);
         IList<(A, B)> IList<A>.Zip<B>(ICollection<B> other) => Zip(other);
         IList<(A, int)> IList<A>.ZipWithIndex() => ZipWithIndex();

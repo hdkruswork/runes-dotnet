@@ -7,7 +7,7 @@ namespace Runes.Model
 {
     public sealed class PropertyModel<A> : IObservable<A>
     {
-        private A value = default;
+        private A value;
 
         private List<Action<A>> subscribers = EmptyList<Action<A>>();
 

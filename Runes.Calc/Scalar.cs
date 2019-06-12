@@ -8,21 +8,26 @@ namespace Runes.Calc
         where This : Scalar<This>
     {
         public static This operator +(Scalar<This> a, This b) => a.Add(b);
-        public static This operator -(Scalar<This> a, This b) => a.Substract(b);
+        public static This operator -(Scalar<This> a, This b) => a.Subtract(b);
         public static This operator *(Scalar<This> a, This b) => a.Multiply(b);
         public static This operator /(Scalar<This> a, This b) => a.Divide(b);
 
         public static This operator -(Scalar<This> a) => a.Negate();
 
-        public static bool operator ==(Scalar<This> a, This b) => a.EqualsTo(b);
-        public static bool operator !=(Scalar<This> a, This b) => !a.EqualsTo(b);
+        public static bool operator ==(Scalar<This> a, This b) => Equals(a, b);
+        public static bool operator !=(Scalar<This> a, This b) => !(a == b);
         public static bool operator <(Scalar<This> a, This b) => a.LesserThan(b);
         public static bool operator >(Scalar<This> a, This b) => a.GreaterThan(b);
         public static bool operator <=(Scalar<This> a, This b) => a.LesserEqualsThan(b);
         public static bool operator >=(Scalar<This> a, This b) => a.GreaterEqualsThan(b);
 
+        public static bool Equals(Scalar<This> a, This b)
+        {
+            return ReferenceEquals(a, b) || !(a is null) && a.EqualsTo(b);
+        }
+
         public abstract This Add(This another);
-        public abstract This Substract(This another);
+        public abstract This Subtract(This another);
         public abstract This Multiply(This another);
         public abstract This Divide(This another);
         public virtual Option<This> SafeDivide(This another) => Option(another).FilterNot(n => n.IsZero).Map(Divide);

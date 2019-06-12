@@ -10,22 +10,22 @@ namespace Runes.Calc
     {
         public static Complex<N> operator +(Complex<N> a, Complex<N> b)
         {
-            (var r1, var i1) = a;
-            (var r2, var i2) = b;
+            var (r1, i1) = a;
+            var (r2, i2) = b;
 
             return Complex(r1 + r2, i1 + i2);
         }
         public static Complex<N> operator -(Complex<N> a, Complex<N> b)
         {
-            (var r1, var i1) = a;
-            (var r2, var i2) = b;
+            var (r1, i1) = a;
+            var (r2, i2) = b;
 
             return Complex(r1 - r2, i1 - i2);
         }
         public static Complex<N> operator *(Complex<N> a, Complex<N> b)
         {
-            (var r1, var i1) = a;
-            (var r2, var i2) = b;
+            var (r1, i1) = a;
+            var (r2, i2) = b;
 
             return Complex(r1*r2 - i1*i2, r1*i2 - r2*i1);
         }
@@ -38,7 +38,7 @@ namespace Runes.Calc
         public Complex<N> Inverse { get; }
 
         public Complex<N> Add(Complex<N> another) => this + another;
-        public Complex<N> Substract(Complex<N> another) => this - another;
+        public Complex<N> Subtract(Complex<N> another) => this - another;
         public Complex<N> Multiply(Complex<N> another) => this * another;
         public Complex<N> Divide(Complex<N> another) => this / another;
 

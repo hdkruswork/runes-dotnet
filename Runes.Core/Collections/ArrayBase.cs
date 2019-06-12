@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 using static Runes.Predef;
 
 namespace Runes.Collections
 {
-    public abstract class ArrayBase<A, CC> : TraversableBase<A, CC>, IArray<A, CC> where CC : ArrayBase<A, CC>
+    public abstract class ArrayBase<A, CC> : IterableBase<A, CC>, IArray<A, CC> where CC : ArrayBase<A, CC>
     {
-        public static CC CreateArrayFrom(ITraversable<A> traversable, Func<A[], CC> buildFunc)
+        public static CC CreateArrayFrom(IIterable<A> iterable, Func<A[], CC> buildFunc)
         {
-            var arr = new A[traversable.Size];
-            traversable.FoldLeft(0, (idx, it) =>
+            var arr = new A[iterable.Size];
+            iterable.FoldLeft(0, (idx, it) =>
             {
                 arr[idx] = it;
                 return idx + 1;
@@ -36,7 +33,7 @@ namespace Runes.Collections
         {
             get
             {
-                (_, var tail) = Split(0);
+                var (_, tail) = Split(0);
 
                 return tail;
             }
@@ -45,7 +42,7 @@ namespace Runes.Collections
         {
             get
             {
-                (var init, _) = Split(Length - 1);
+                var (init, _) = Split(Length - 1);
 
                 return init;
             }
@@ -57,25 +54,25 @@ namespace Runes.Collections
 
         public Array<B> As<B>() where B : class
         {
-            var list = FoldRight(EmptyList<B>(), (list, it) =>
+            var list = FoldRight(EmptyList<B>(), (agg, it) =>
             {
                 var res = it is B b ? b : default;
 
-                return list.Prepend(res);
+                return agg.Prepend(res);
             });
 
             return list.ToArray();
         }
         public Array<B> Collect<B>(Func<A, Option<B>> f)
         {
-            var list = FoldRight(EmptyList<B>(), (list, it) =>
+            var list = FoldRight(EmptyList<B>(), (agg, it) =>
             {
                 if (f(it).GetIfPresent(out B res))
                 {
-                    return list.Prepend(res);
+                    return agg.Prepend(res);
                 }
 
-                return list;
+                return agg;
             });
 
             return list.ToArray();
@@ -149,7 +146,7 @@ namespace Runes.Collections
             }
         });
         public override CC Reversed() => CreateArray(array, GetPhysicalIdx(Length - 1), Length, -step);
-        public ITraversable<CC> Sliding(int size, int step = 1)
+        public IIterable<CC> Sliding(int size, int step = 1)
         {
             var slides = EmptyList<CC>();
             for (long idx = 0; idx < Length; idx += (size + step - 1))
@@ -225,16 +222,16 @@ namespace Runes.Collections
         protected long GetPhysicalIdx(long logicalIdx) => startIndex + step * logicalIdx;
 
         protected abstract CC GetEmptyArray();
-        protected abstract CC CreateArray(A[] array, long startIndex, long length, int step);
+        protected abstract CC CreateArray(A[] arr, long start, long length, int stp);
         protected abstract CC FromList(List<A> list);
 
         protected That FlatMap<B, That>(Func<A, ICollection<B>> f, Func<B[], That> buildFunc) where That : ArrayBase<B, That>
         {
-            var list = FoldLeft(EmptyList<B>(), (list, it) =>
+            var list = FoldLeft(EmptyList<B>(), (agg, it) =>
             {
-                f(it).ToTraversable().Foreach(b => list = list.Prepend(b));
+                f(it).ToIterable().Foreach(b => agg = agg.Prepend(b));
 
-                return list;
+                return agg;
             });
 
             return ArrayBase<B, That>.CreateArrayFrom(list, buildFunc).Reversed();
@@ -251,12 +248,12 @@ namespace Runes.Collections
             Func<Y[], Right> rightBuildFunc
         ) where Left : ArrayBase<X, Left> where Right : ArrayBase<Y, Right>
         {
-            (var left, var right) = FoldRight((EmptyList<X>(), EmptyList<Y>()), (listPair, it) =>
+            var (left, right) = FoldRight((EmptyList<X>(), EmptyList<Y>()), (listPair, it) =>
             {
-                (var left, var right) = listPair;
-                (var x, var y) = toPairFunc(it);
+                var (l, r) = listPair;
+                var (x, y) = toPairFunc(it);
 
-                return (left.Prepend(x), right.Prepend(y));
+                return (l.Prepend(x), r.Prepend(y));
             });
 
             return
@@ -299,13 +296,13 @@ namespace Runes.Collections
         protected abstract IArray<(A, B)> ArrayZip<B>(ICollection<B> other);
         protected abstract IArray<(A, int)> ArrayZipWithIndex();
 
-        protected override ITraversable<B> TraversableAs<B>() where B : class => As<B>();
-        protected override ITraversable<B> TraversableCollect<B>(Func<A, Option<B>> f) => Collect(f);
-        protected override ITraversable<B> TraversableFlatMap<B>(Func<A, ICollection<B>> f) => ArrayFlatMap(f);
-        protected override ITraversable<B> TraversableMap<B>(Func<A, B> f) => ArrayMap(f);
-        protected override (ITraversable<X>, ITraversable<Y>) TraversableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) => ArrayUnzip(toPairFunc);
-        protected override ITraversable<(A, B)> TraversableZip<B>(ICollection<B> other) => ArrayZip(other);
-        protected override ITraversable<(A, int)> TraversableZipWithIndex() => ArrayZipWithIndex();
+        protected override IIterable<B> IterableAs<B>() => As<B>();
+        protected override IIterable<B> IterableCollect<B>(Func<A, Option<B>> f) => Collect(f);
+        protected override IIterable<B> IterableFlatMap<B>(Func<A, ICollection<B>> f) => ArrayFlatMap(f);
+        protected override IIterable<B> IterableMap<B>(Func<A, B> f) => ArrayMap(f);
+        protected override (IIterable<X>, IIterable<Y>) IterableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) => ArrayUnzip(toPairFunc);
+        protected override IIterable<(A, B)> IterableZip<B>(ICollection<B> other) => ArrayZip(other);
+        protected override IIterable<(A, int)> IterableZipWithIndex() => ArrayZipWithIndex();
 
         // private members
 
@@ -315,15 +312,15 @@ namespace Runes.Collections
         private CC Filter(Func<A, bool> p, bool isTruthly)
         {
             bool filtered = false;
-            var list = FoldRight(EmptyList<A>(), (list, it) =>
+            var list = FoldRight(EmptyList<A>(), (agg, it) =>
             {
                 if (p(it) == isTruthly)
                 {
-                    return list.Prepend(it);
+                    return agg.Prepend(it);
                 }
 
                 filtered = true;
-                return list;
+                return agg;
             });
 
             return filtered ? FromList(list) : This;
@@ -349,14 +346,14 @@ namespace Runes.Collections
         IArray<B> IArray<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
         IArray<B> IArray<A>.FlatMap<B>(Func<A, ICollection<B>> f) => ArrayFlatMap(f);
         IArray<B> IArray<A>.Map<B>(Func<A, B> f) => ArrayMap(f);
-        ITraversable<IArray<A>> IArray<A>.Sliding(int size, int step) => Sliding(size, step).As<IArray<A>>();
+        IIterable<IArray<A>> IArray<A>.Sliding(int size, int step) => Sliding(size, step).As<IArray<A>>();
         (IArray<A>, IArray<A>) IArray<A>.Split(long index) => Split(index);
         (IArray<X>, IArray<Y>) IArray<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => ArrayUnzip(toPairFunc);
         IArray<(A, B)> IArray<A>.Zip<B>(ICollection<B> other) => ArrayZip(other);
         IArray<(A, int)> IArray<A>.ZipWithIndex() => ArrayZipWithIndex();
 
         (CC, CC) IArray<A, CC>.Split(long index) => Split(index);
-        ITraversable<CC> IArray<A, CC>.Sliding(int size, int step) => Sliding(size, step);
+        IIterable<CC> IArray<A, CC>.Sliding(int size, int step) => Sliding(size, step);
         That IArray<A>.FoldRight<That>(That initialValue, Func<That, A, That> f) => FoldRight(initialValue, f);
         That IArray<A>.FoldRightWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f) => FoldRightWhile(initialValue, p, f);
     }

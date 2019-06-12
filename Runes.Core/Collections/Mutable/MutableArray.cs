@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-using static Runes.Predef;
-
-namespace Runes.Collections
+namespace Runes.Collections.Mutable
 {
     public sealed class MutableArray<A> : ArrayBase<A, MutableArray<A>>, IMutableArray<A, MutableArray<A>>
     {
         public static readonly MutableArray<A> Empty = new MutableArray<A>(new A[0], 0, 0, 0);
 
-        public static implicit operator MutableArray<A>(A[] array) => MArray(array);
+        public static implicit operator MutableArray<A>(A[] array) => Predef.MArray(array);
         public static implicit operator A[](MutableArray<A> mArray) => mArray.array;
 
-        public static MutableArray<A> CreateFrom(A[] array) => MArray(array, 0, array.LongLength, 1);
-        public static MutableArray<A> CreateArrayFrom(ITraversable<A> traversable) =>
-            CreateArrayFrom(traversable, CreateFrom);
+        public static MutableArray<A> CreateFrom(A[] array) => Predef.MArray(array, 0, array.LongLength, 1);
+        public static MutableArray<A> CreateArrayFrom(IIterable<A> iterable) =>
+            CreateArrayFrom(iterable, CreateFrom);
 
         public new A this[long idx]
         {
@@ -48,11 +44,11 @@ namespace Runes.Collections
 
         protected override MutableArray<A> GetEmptyArray() => Empty;
 
-        protected override MutableArray<A> CreateArray(A[] array, long startIndex, long length, int step) =>
-            new MutableArray<A>(array, startIndex, length, step);
+        protected override MutableArray<A> CreateArray(A[] arr, long start, long length, int stp) =>
+            new MutableArray<A>(arr, start, length, stp);
 
         protected override MutableArray<A> FromList(List<A> list) =>
-            CreateArrayFrom(list, array => CreateArray(array, 0, array.LongLength, 1));
+            CreateArrayFrom(list, arr => CreateArray(arr, 0, arr.LongLength, 1));
 
         // private members
 
@@ -61,6 +57,6 @@ namespace Runes.Collections
 
         IMutableArray<A> IMutableArray<A>.Reversed() => Reversed();
         (IMutableArray<A>, IMutableArray<A>) IMutableArray<A>.Split(long index) => Split(index);
-        ITraversable<IMutableArray<A>> IMutableArray<A>.Sliding(int size, int step) => Sliding(size, step).As<IMutableArray<A>>();
+        IIterable<IMutableArray<A>> IMutableArray<A>.Sliding(int size, int stp) => Sliding(size, stp).As<IMutableArray<A>>();
     }
 }

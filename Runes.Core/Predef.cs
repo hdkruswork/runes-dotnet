@@ -1,6 +1,7 @@
 ﻿using Runes.Collections;
 using System;
 using System.Numerics;
+using Runes.Collections.Mutable;
 
 namespace Runes
 {
@@ -164,8 +165,8 @@ namespace Runes
                 return array;
             }
 
-            var traversable = ToTraversable(collection);
-            return Collections.Array<A>.CreateArrayFrom(traversable);
+            var iterable = ToIterable(collection);
+            return Collections.Array<A>.CreateArrayFrom(iterable);
         }
 
         public static MutableArray<A> ToMArray<A>(this ICollection<A> collection)
@@ -175,8 +176,8 @@ namespace Runes
                 return array;
             }
 
-            var traversable = ToTraversable(collection);
-            return Collections.MutableArray<A>.CreateArrayFrom(traversable);
+            var iterable = ToIterable(collection);
+            return MutableArray<A>.CreateArrayFrom(iterable);
         }
 
         public static List<A> ToList<A>(this ICollection<A> collection)
@@ -187,8 +188,8 @@ namespace Runes
             }
 
             var res = EmptyList<A>();
-            var traversable = ToTraversable(collection);
-            traversable.Reversed().Foreach(it => res = res.Prepend(it));
+            var iterable = ToIterable(collection);
+            iterable.Reversed().Foreach(it => res = res.Prepend(it));
 
             return res;
         }
@@ -215,14 +216,14 @@ namespace Runes
                 : EmptyStream<A>();
         }
 
-        public static ITraversable<A> ToTraversable<A>(this ICollection<A> collection)
+        public static IIterable<A> ToIterable<A>(this ICollection<A> collection)
         {
-            if (collection is ITraversable<A> traversable)
+            if (collection is IIterable<A> iterable)
             {
-                return traversable;
+                return iterable;
             }
 
-            throw new NotSupportedException("Non traversable collections cannot be handled as traversabe");
+            throw new NotSupportedException("Non iterable collections cannot be handled as iterable");
         }
 
         #endregion
@@ -246,10 +247,10 @@ namespace Runes
         }
         public static List<A> List<A>(A head, List<A> tail) => Lists.Create(head, tail);
 
-        public static List<A> ToList<A>(this ITraversable<A> traversable)
+        public static List<A> ToList<A>(this IIterable<A> iterable)
         {
             var builder = Collections.List<A>.CreateListBuilder();
-            traversable.FoldLeft(Unit(), (_, it) => Unit(() => builder.Add(it)));
+            iterable.FoldLeft(Unit(), (_, it) => Unit(() => builder.Add(it)));
 
             return builder.Build();
         }
@@ -283,7 +284,7 @@ namespace Runes
 
         public static Stream<A> EmptyStream<A>() => Collections.Stream<A>.Empty;
 
-        public static Stream<A> Flatten<A, CC>(this Stream<CC> stream) where CC : ITraversable<A, CC> =>
+        public static Stream<A> Flatten<A, CC>(this Stream<CC> stream) where CC : IIterable<A, CC> =>
             stream.HeadOption.GetIfPresent(out CC head)
                 ? head.ToStream().Append(() => stream.Tail.Flatten<A, CC>())
                 : EmptyStream<A>();

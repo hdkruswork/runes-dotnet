@@ -5,24 +5,24 @@ using static Runes.Predef;
 
 namespace Runes.Collections
 {
-    public abstract class TraversableBase<A, CC> : CollectionBase<A, CC>, ITraversable<A, CC>
-        where CC : TraversableBase<A, CC>
+    public abstract class IterableBase<A, CC> : CollectionBase<A, CC>, IIterable<A, CC>
+        where CC : IterableBase<A, CC>
     {
         public virtual long Size => NonEmpty ? Tail.Size + 1 : 0;
 
         public override CC Drops(int count)
         {
-            (var res, _) = FoldLeftWhile(
+            var (res, _) = FoldLeftWhile(
                 (This, count),
                 (pair, it) =>
                 {
-                    (_, var skipped) = pair;
+                    var (_, skipped) = pair;
 
                     return skipped < count;
                 },
                 (pair, _) =>
                 {
-                    (var list, var skipped) = pair;
+                    var (list, skipped) = pair;
 
                     return (list.Tail, skipped + 1);
                 }
@@ -83,14 +83,14 @@ namespace Runes.Collections
 
         protected CC DropsWhile(Func<A, bool> p, out int skipped, bool isTruthly)
         {
-            (var res, var skp) = FoldLeftWhile(
+            var (res, skp) = FoldLeftWhile(
                 (This, 0),
                 (_, it) => p(it) == isTruthly,
                 (pair, _) =>
                 {
-                    (var cc, var skp) = pair;
+                    var (cc, skippedInc) = pair;
 
-                    return (cc.Tail, skp + 1);
+                    return (cc.Tail, skippedInc + 1);
                 }
             );
 
@@ -153,7 +153,7 @@ namespace Runes.Collections
         {
             Foreach(a =>
             {
-                a.As<B>().Foreach(b => builder.Add(b));
+                a.As<B>().Foreach(builder.Add);
             });
 
             return builder.Build();
@@ -164,7 +164,7 @@ namespace Runes.Collections
         {
             Foreach(a =>
             {
-                f(a).Foreach(b => builder.Add(b));
+                f(a).Foreach(builder.Add);
             });
 
             return builder.Build();
@@ -175,8 +175,8 @@ namespace Runes.Collections
         {
             Foreach(a =>
             {
-                var traversable = f(a).ToTraversable();
-                traversable.Foreach(b => builder.Add(b));
+                var iterable = f(a).ToIterable();
+                iterable.Foreach(builder.Add);
             });
 
             return builder.Build();
@@ -200,7 +200,7 @@ namespace Runes.Collections
         {
             Foreach(a =>
             {
-                (var x, var y) = toPairFunc(a);
+                var (x, y) = toPairFunc(a);
 
                 leftBuilder.Add(x);
                 rightBuilder.Add(y);
@@ -236,39 +236,39 @@ namespace Runes.Collections
             return builder.Build();
         }
 
-        protected abstract ITraversable<B> TraversableAs<B>() where B : class;
-        protected abstract ITraversable<B> TraversableCollect<B>(Func<A, Option<B>> f);
-        protected abstract ITraversable<B> TraversableFlatMap<B>(Func<A, ICollection<B>> f);
-        protected abstract ITraversable<B> TraversableMap<B>(Func<A, B> f);
-        protected abstract (ITraversable<X>, ITraversable<Y>) TraversableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc);
-        protected abstract ITraversable<(A, B)> TraversableZip<B>(ICollection<B> other);
-        protected abstract ITraversable<(A, int)> TraversableZipWithIndex();
+        protected abstract IIterable<B> IterableAs<B>() where B : class;
+        protected abstract IIterable<B> IterableCollect<B>(Func<A, Option<B>> f);
+        protected abstract IIterable<B> IterableFlatMap<B>(Func<A, ICollection<B>> f);
+        protected abstract IIterable<B> IterableMap<B>(Func<A, B> f);
+        protected abstract (IIterable<X>, IIterable<Y>) IterableUnzip<X, Y>(Func<A, (X, Y)> toPairFunc);
+        protected abstract IIterable<(A, B)> IterableZip<B>(ICollection<B> other);
+        protected abstract IIterable<(A, int)> IterableZipWithIndex();
 
-        protected override ICollection<B> CollectionAs<B>() where B : class => TraversableAs<B>();
+        protected override ICollection<B> CollectionAs<B>() => IterableAs<B>();
         protected override ICollection<B> CollectionCollect<B>(Func<A, Option<B>> f) =>
-            TraversableCollect(f);
-        protected override ICollection<B> CollectionFlatMap<B>(Func<A, ICollection<B>> f) => TraversableFlatMap(f);
+            IterableCollect(f);
+        protected override ICollection<B> CollectionFlatMap<B>(Func<A, ICollection<B>> f) => IterableFlatMap(f);
         protected override ICollection<B> CollectionMap<B>(Func<A, B> f) =>
-            TraversableMap(f);
+            IterableMap(f);
         protected override (ICollection<X>, ICollection<Y>) CollectionUnzip<X, Y>(Func<A, (X, Y)> toPairFunc) =>
-            TraversableUnzip(toPairFunc);
+            IterableUnzip(toPairFunc);
         protected override ICollection<(A, B)> CollectionZip<B>(ICollection<B> other) =>
-            TraversableZip(other);
+            IterableZip(other);
         protected override ICollection<(A, int)> CollectionZipWithIndex() =>
-            TraversableZipWithIndex();
+            IterableZipWithIndex();
 
         // private members
 
-        ITraversable<A> ITraversable<A>.Tail => Tail;
+        IIterable<A> IIterable<A>.Tail => Tail;
 
-        ITraversable<B> ITraversable<A>.As<B>() => TraversableAs<B>();
-        ITraversable<B> ITraversable<A>.Collect<B>(Func<A, Option<B>> f) => TraversableCollect(f);
-        ITraversable<B> ITraversable<A>.FlatMap<B>(Func<A, ICollection<B>> f) => TraversableFlatMap(f);
-        ITraversable<B> ITraversable<A>.Map<B>(Func<A, B> f) => TraversableMap(f);
-        ITraversable<A> ITraversable<A>.Reversed() => Reversed();
-        (ITraversable<X>, ITraversable<Y>) ITraversable<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => TraversableUnzip(toPairFunc);
-        ITraversable<(A, B)> ITraversable<A>.Zip<B>(ICollection<B> other) => TraversableZip(other);
-        ITraversable<(A, int)> ITraversable<A>.ZipWithIndex() => TraversableZipWithIndex();
+        IIterable<B> IIterable<A>.As<B>() => IterableAs<B>();
+        IIterable<B> IIterable<A>.Collect<B>(Func<A, Option<B>> f) => IterableCollect(f);
+        IIterable<B> IIterable<A>.FlatMap<B>(Func<A, ICollection<B>> f) => IterableFlatMap(f);
+        IIterable<B> IIterable<A>.Map<B>(Func<A, B> f) => IterableMap(f);
+        IIterable<A> IIterable<A>.Reversed() => Reversed();
+        (IIterable<X>, IIterable<Y>) IIterable<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => IterableUnzip(toPairFunc);
+        IIterable<(A, B)> IIterable<A>.Zip<B>(ICollection<B> other) => IterableZip(other);
+        IIterable<(A, int)> IIterable<A>.ZipWithIndex() => IterableZipWithIndex();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

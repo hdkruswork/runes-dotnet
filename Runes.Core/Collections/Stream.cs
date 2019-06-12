@@ -13,7 +13,7 @@ namespace Runes.Collections
                 ? Stream(b, () => Tail.As<B>())
                 : EmptyStream<B>();
         public Stream<A> Append(A item) => Append(() => Stream(item));
-        public Stream<A> Append(ITraversable<A> traversable) => Append(() => traversable.ToStream());
+        public Stream<A> Append(IIterable<A> iterable) => Append(iterable.ToStream);
         public Stream<A> Append(Func<Stream<A>> tailFunc) =>
             HeadOption.GetIfPresent(out A head)
                 ? Stream(head, () => Tail.Append(tailFunc))
@@ -40,7 +40,7 @@ namespace Runes.Collections
             if (HeadOption.GetIfPresent(out A head))
             {
                 var stream = f(head)
-                    .Map(b => Stream(b))
+                    .Map(Stream)
                     .GetOrElse(EmptyStream<B>());
 
                 return stream.Append(() => Tail.FlatMap(f));
@@ -65,7 +65,7 @@ namespace Runes.Collections
                 ? Stream(f(head), () => Tail.Map(f))
                 : EmptyStream<B>();
         public Stream<A> Prepend(A item) => Stream(item, this);
-        public Stream<A> Prepend(ITraversable<A> traversable) => traversable.ToStream().Append(() => this);
+        public Stream<A> Prepend(IIterable<A> iterable) => iterable.ToStream().Append(() => this);
         public Stream<Stream<A>> Sliding(int size, int step) => Stream(Take(size), () => Drops(step).Sliding(size, step));
         public override Stream<A> Take(int count)
         {
@@ -159,16 +159,16 @@ namespace Runes.Collections
         IStream<A> IStream<A>.Tail => Tail;
 
         IStream<A> IStream<A>.Append(A item) => Append(item);
-        IStream<A> IStream<A>.Append(ITraversable<A> traversable) => Append(traversable);
+        IStream<A> IStream<A>.Append(IIterable<A> iterable) => Append(iterable);
         IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
-        IGrowable<A> IGrowable<A>.Append(ITraversable<A> traversable) => Append(traversable);
+        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
         IStream<B> IStream<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
         IStream<B> IStream<A>.Map<B>(Func<A, B> f) => Map(f);
         IStream<A> IStream<A>.Prepend(A item) => Prepend(item);
         IStream<IStream<A>> IStream<A>.Sliding(int size, int step) => Sliding(size, step).As<IStream<A>>();
-        IStream<A> IStream<A>.Prepend(ITraversable<A> traversable) => Prepend(traversable);
+        IStream<A> IStream<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
         IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
-        IGrowable<A> IGrowable<A>.Prepend(ITraversable<A> traversable) => Prepend(traversable);
+        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
         IStream<(A, B)> IStream<A>.Zip<B>(ICollection<B> other) => Zip(other);
         IStream<(A, int)> IStream<A>.ZipWithIndex() => ZipWithIndex();
 

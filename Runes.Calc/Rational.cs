@@ -9,7 +9,7 @@ using static Runes.Predef;
 namespace Runes.Calc
 {
     public class Rational
-        : Scalar<Rational>, IComparable<Rational>, IEquatable<Rational>, IEquatable<Int>
+        : Scalar<Rational>, IEquatable<Int>
     {
         // Static members
 
@@ -96,28 +96,27 @@ namespace Runes.Calc
                 number = Rational(bigInt);
                 return true;
             }
-            else if (double.TryParse(str, out double doubleValue))
+
+            if (double.TryParse(str, out double doubleValue))
             {
                 number = Rational(doubleValue);
                 return true;
             }
-            else
-            {
-                number = Zero;
-                var split = str.Split(new string[] { m_solidus }, StringSplitOptions.RemoveEmptyEntries);
-                if (split.Length > 0 && BigInteger.TryParse(split[0], out BigInteger num))
-                {
-                    if (split.Length <= 1 || !BigInteger.TryParse(split[1], out BigInteger den))
-                    {
-                        den = BigInteger.One;
-                    }
 
-                    number = Rational(num, den);
-                    return true;
+            number = Zero;
+            var split = str.Split(new[] { m_solidus }, StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length > 0 && BigInteger.TryParse(split[0], out BigInteger num))
+            {
+                if (split.Length <= 1 || !BigInteger.TryParse(split[1], out BigInteger den))
+                {
+                    den = BigInteger.One;
                 }
-                else
-                    return false;
+
+                number = Rational(num, den);
+                return true;
             }
+
+            return false;
         }
 
         // Instance members
@@ -157,21 +156,18 @@ namespace Runes.Calc
 
         public override Rational Multiply(Rational r) => this * r;
 
-        public override Rational Substract(Rational r) => this - r;
+        public override Rational Subtract(Rational r) => this - r;
 
         public override Rational Negate() => -this;
 
         public Rational Simplify()
         {
             if (IsSimplified) return this;
-            else
-            {
-                var gcd = GCD(Numerator, Denominator);
-                var sNum = Numerator / gcd;
-                var sDen = Denominator / gcd;
+            var gcd = GCD(Numerator, Denominator);
+            var sNum = Numerator / gcd;
+            var sDen = Denominator / gcd;
 
-                return Rational(sNum, sDen, true);
-            }
+            return Rational(sNum, sDen, true);
         }
 
         public override int CompareTo(Rational other) => Compare(this, other);
@@ -193,7 +189,7 @@ namespace Runes.Calc
 
             return s.IsInteger
                 ? s.Numerator.ToString()
-                : ToDouble().ToString();
+                : ToDouble().ToString(CultureInfo.InvariantCulture);
         }
 
         public override bool Equals(object obj)

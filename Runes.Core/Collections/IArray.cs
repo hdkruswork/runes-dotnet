@@ -2,7 +2,7 @@
 
 namespace Runes.Collections
 {
-    public interface IArray<A> : ITraversable<A>
+    public interface IArray<A> : IIterable<A>
     {
         Option<A> this[long index] { get; }
 
@@ -23,14 +23,14 @@ namespace Runes.Collections
         That FoldRight<That>(That initialValue, Func<That, A, That> f);
         That FoldRightWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f);
         (IArray<A>, IArray<A>) Split(long index);
-        ITraversable<IArray<A>> Sliding(int size, int step = 1);
+        IIterable<IArray<A>> Sliding(int size, int step = 1);
     }
 
-    public interface IArray<A, CC> : IArray<A>, ITraversable<A, CC> where CC : IArray<A, CC>
+    public interface IArray<A, CC> : IArray<A>, IIterable<A, CC> where CC : IArray<A, CC>
     {
         new CC Init { get; }
 
         new (CC, CC) Split(long index);
-        new ITraversable<CC> Sliding(int size, int step = 1);
+        new IIterable<CC> Sliding(int size, int step = 1);
     }
 }

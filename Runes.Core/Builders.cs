@@ -1,6 +1,6 @@
 ﻿namespace Runes
 {
-    public interface IBuilder<A>
+    public interface IBuilder<out A>
     {
         A Build();
     }

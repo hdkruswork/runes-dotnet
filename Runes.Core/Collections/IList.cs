@@ -2,7 +2,7 @@
 
 namespace Runes.Collections
 {
-    public interface IList<A> : ITraversable<A>, IGrowable<A>
+    public interface IList<A> : IIterable<A>, IGrowable<A>
     {
         new IList<A> Tail { get; }
 
@@ -15,7 +15,8 @@ namespace Runes.Collections
         new IList<(A, int)> ZipWithIndex();
     }
 
-    public interface IList<A, CC> : IList<A>, ITraversable<A, CC>, IGrowable<A, CC> where CC : IList<A, CC>
+    public interface IList<A, out CC> : IList<A>, IIterable<A, CC>, IGrowable<A, CC> where CC : IList<A, CC>
     {
+        new CC Tail { get;  }
     }
 }
