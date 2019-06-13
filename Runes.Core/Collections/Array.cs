@@ -1,4 +1,5 @@
 ﻿using System;
+using Runes.Math;
 
 using static Runes.Predef;
 
@@ -11,19 +12,32 @@ namespace Runes.Collections
         public static implicit operator Array<A>(A[] array) => Array(array);
 
         public static Array<A> CreateFrom(A[] array) => new Array<A>(array, 0, array.LongLength);
-        public static Array<A> CreateArrayFrom(IIterable<A> iterable) =>
-            CreateArrayFrom(iterable, CreateFrom);
 
-        public Array<B> FlatMap<B>(Func<A, ICollection<B>> f) =>
-            FlatMap(f, Array<B>.CreateFrom);
-        public Array<B> Map<B>(Func<A, B> f) =>
-            Map(f, Array<B>.CreateFrom);
+        public static Array<A> CreateArrayFrom(IIterable<A> iterable) => CreateArrayFrom(iterable, CreateFrom);
+
+        public Array<B> FlatMap<B>(Func<A, ICollection<B>> f) => FlatMap(f, Array<B>.CreateFrom);
+
+        public Array<B> Map<B>(Func<A, B> f) => Map(f, Array<B>.CreateFrom);
+
+        public override Array<A> Sort(Ordering<A> ord)
+        {
+            var arrayCopy = new A[Length];
+            for (long idx = 0; idx < Length; idx++)
+            {
+                arrayCopy[idx] = GetItemAt(idx);
+            }
+
+            Quicksort<A>().Sort(MArray(arrayCopy), ord);
+
+            return Array(arrayCopy);
+        }
+
         public (Array<X>, Array<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) =>
             Unzip(toPairFunc, Array<X>.CreateFrom, Array<Y>.CreateFrom);
-        public Array<(A, B)> Zip<B>(ICollection<B> other) =>
-            Zip(other, Array<(A, B)>.CreateFrom);
-        public Array<(A, int)> ZipWithIndex() =>
-            ZipWithIndex(Array<(A, int)>.CreateFrom);
+        
+        public Array<(A, B)> Zip<B>(ICollection<B> other) => Zip(other, Array<(A, B)>.CreateFrom);
+
+        public Array<(A, int)> ZipWithIndex() => ZipWithIndex(Array<(A, int)>.CreateFrom);
 
         // constructor
 

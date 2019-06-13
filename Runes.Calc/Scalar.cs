@@ -1,10 +1,10 @@
 ﻿using System;
-
+using Runes.Math;
 using static Runes.Predef;
 
 namespace Runes.Calc
 {
-    public abstract class Scalar<This> : IComparable<This>, IEquatable<This>
+    public abstract class Scalar<This> : IOrdered<This>, IEquatable<This>
         where This : Scalar<This>
     {
         public static This operator +(Scalar<This> a, This b) => a.Add(b);
@@ -34,12 +34,12 @@ namespace Runes.Calc
 
         public abstract This Negate();
 
-        public virtual bool EqualsTo(This another) => CompareTo(another) == 0;
-        public virtual bool NonEqualsTo(This another) => CompareTo(another) != 0;
-        public virtual bool GreaterThan(This another) => CompareTo(another) > 0;
-        public virtual bool GreaterEqualsThan(This another) => CompareTo(another) >= 0;
-        public virtual bool LesserThan(This another) => CompareTo(another) < 0;
-        public virtual bool LesserEqualsThan(This another) => CompareTo(another) <= 0;
+        public virtual bool EqualsTo(This another) => ((IOrdered<This>)this).EqualsTo(another);
+        public virtual bool NonEqualsTo(This another) => ((IOrdered<This>)this).NonEqualsTo(another);
+        public virtual bool GreaterThan(This another) => ((IOrdered<This>)this).GreaterThan(another);
+        public virtual bool GreaterEqualsThan(This another) => ((IOrdered<This>)this).GreaterEqualsThan(another);
+        public virtual bool LesserThan(This another) => ((IOrdered<This>)this).LesserThan(another);
+        public virtual bool LesserEqualsThan(This another) => ((IOrdered<This>)this).LesserEqualsThan(another);
 
         public abstract int CompareTo(This another);
         public bool Equals(This other) => EqualsTo(other);

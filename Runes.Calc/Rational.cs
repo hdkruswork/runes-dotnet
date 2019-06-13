@@ -180,7 +180,7 @@ namespace Runes.Calc
 
             return s.IsInteger
                 ? (double)s.Numerator
-                : Math.Exp(s.Numerator.Log() - s.Denominator.Log());
+                : System.Math.Exp(s.Numerator.Log() - s.Denominator.Log());
         }
 
         public string ToNumberString()

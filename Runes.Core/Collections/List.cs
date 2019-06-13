@@ -1,5 +1,5 @@
 ﻿using System;
-
+using Runes.Math;
 using static Runes.Predef;
 
 namespace Runes.Collections
@@ -82,6 +82,8 @@ namespace Runes.Collections
 
         public override List<A> Reversed() =>
             FoldLeft(EmptyList<A>(), (reversed, it) => reversed.Prepend(it));
+
+        public override List<A> Sort(Ordering<A> ord) => this.ToMArray().Sort(ord).ToList();
 
         public override List<A> Take(int count) => Take(count, CreateListBuilder());
 

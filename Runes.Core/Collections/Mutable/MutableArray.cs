@@ -1,4 +1,7 @@
 ﻿using System;
+using Runes.Math;
+
+using static Runes.Predef;
 
 namespace Runes.Collections.Mutable
 {
@@ -19,16 +22,18 @@ namespace Runes.Collections.Mutable
             set => array[GetPhysicalIdx(idx)] = value;
         }
 
-        public MutableArray<B> FlatMap<B>(Func<A, ICollection<B>> f) =>
-            FlatMap(f, MutableArray<B>.CreateFrom);
-        public MutableArray<B> Map<B>(Func<A, B> f) =>
-            Map(f, MutableArray<B>.CreateFrom);
+        public MutableArray<B> FlatMap<B>(Func<A, ICollection<B>> f) => FlatMap(f, MutableArray<B>.CreateFrom);
+        
+        public MutableArray<B> Map<B>(Func<A, B> f) => Map(f, MutableArray<B>.CreateFrom);
+
+        public override MutableArray<A> Sort(Ordering<A> ord) => Quicksort<A>().Sort(this, ord);
+
         public (MutableArray<X>, MutableArray<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) =>
             Unzip(toPairFunc, MutableArray<X>.CreateFrom, MutableArray<Y>.CreateFrom);
-        public MutableArray<(A, B)> Zip<B>(ICollection<B> other) =>
-            Zip(other, MutableArray<(A, B)>.CreateFrom);
-        public MutableArray<(A, int)> ZipWithIndex() =>
-            ZipWithIndex(MutableArray<(A, int)>.CreateFrom);
+        
+        public MutableArray<(A, B)> Zip<B>(ICollection<B> other) => Zip(other, MutableArray<(A, B)>.CreateFrom);
+        
+        public MutableArray<(A, int)> ZipWithIndex() => ZipWithIndex(MutableArray<(A, int)>.CreateFrom);
 
         // constructor
 

@@ -2,6 +2,7 @@
 using System;
 using System.Numerics;
 using Runes.Collections.Mutable;
+using Runes.Math;
 
 namespace Runes
 {
@@ -89,6 +90,16 @@ namespace Runes
 
         internal static Failure<A> Failure<A>(Exception ex) => new Failure<A>(ex);
         internal static Success<A> Success<A>(A result) => new Success<A>(result);
+
+        #endregion
+
+        #region Math
+
+        public static Ordering<A> OrderingBy<A>(Func<A, A, int> comparingFunc) => Ordering<A>.By(comparingFunc);
+
+        public static Ordering<A> OrderingBy<A>() where A : IComparable<A> => Ordering<A>.By((x, y) => x.CompareTo(y));
+
+        public static QuickSortAlgorithm<A> Quicksort<A>() => QuickSortAlgorithm<A>.Object;
 
         #endregion
 

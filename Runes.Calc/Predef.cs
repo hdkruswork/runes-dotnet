@@ -1,4 +1,5 @@
 ﻿using Runes.Collections;
+using Runes.Math;
 using System;
 using System.Globalization;
 using System.Numerics;
@@ -32,72 +33,99 @@ namespace Runes.Calc
 
         #region Max/Min functions
 
-        public static sbyte Max(params sbyte[] values) => Max(values, Compare, sbyte.MaxValue);
-        public static sbyte Min(params sbyte[] values) => Min(values, Compare, sbyte.MinValue);
-        public static sbyte Max(this IIterable<sbyte> values) => Max(values, Compare, sbyte.MaxValue);
-        public static sbyte Min(this IIterable<sbyte> values) => Min(values, Compare, sbyte.MinValue);
-        public static byte Max(params byte[] values) => Max(values, Compare, byte.MaxValue);
-        public static byte Min(params byte[] values) => Min(values, Compare, byte.MinValue);
-        public static byte Max(this IIterable<byte> values) => Max(values, Compare, byte.MaxValue);
-        public static byte Min(this IIterable<byte> values) => Min(values, Compare, byte.MinValue);
-        public static short Max(params short[] values) => Max(values, Compare, short.MaxValue);
-        public static short Min(params short[] values) => Min(values, Compare, short.MinValue);
-        public static short Max(this IIterable<short> values) => Max(values, Compare, short.MaxValue);
-        public static short Min(this IIterable<short> values) => Min(values, Compare, short.MinValue);
-        public static ushort Max(params ushort[] values) => Max(values, Compare, ushort.MaxValue);
-        public static ushort Min(params ushort[] values) => Min(values, Compare, ushort.MinValue);
-        public static ushort Max(this IIterable<ushort> values) => Max(values, Compare, ushort.MaxValue);
-        public static ushort Min(this IIterable<ushort> values) => Min(values, Compare, ushort.MinValue);
-        public static int Max(params int[] values) => Max(values, Compare, int.MaxValue);
-        public static int Min(params int[] values) => Min(values, Compare, int.MinValue);
-        public static int Max(this IIterable<int> values) => Max(values, Compare, int.MaxValue);
-        public static int Min(this IIterable<int> values) => Min(values, Compare, int.MinValue);
-        public static uint Max(params uint[] values) => Max(values, Compare, uint.MaxValue);
-        public static uint Min(params uint[] values) => Min(values, Compare, uint.MinValue);
-        public static uint Max(this IIterable<uint> values) => Max(values, Compare, uint.MaxValue);
-        public static uint Min(this IIterable<uint> values) => Min(values, Compare, uint.MinValue);
-        public static long Max(params long[] values) => Max(values, Compare, long.MaxValue);
-        public static long Min(params long[] values) => Min(values, Compare, long.MinValue);
-        public static long Max(this IIterable<long> values) => Max(values, Compare, long.MaxValue);
-        public static long Min(this IIterable<long> values) => Min(values, Compare, long.MinValue);
-        public static ulong Max(params ulong[] values) => Max(values, Compare, ulong.MaxValue);
-        public static ulong Min(params ulong[] values) => Min(values, Compare, ulong.MinValue);
-        public static ulong Max(this IIterable<ulong> values) => Max(values, Compare, ulong.MaxValue);
-        public static ulong Min(this IIterable<ulong> values) => Min(values, Compare, ulong.MinValue);
-        public static float Max(params float[] values) => Max(values, Compare, float.MaxValue);
-        public static float Min(params float[] values) => Min(values, Compare, float.MinValue);
-        public static float Max(this IIterable<float> values) => Max(values, Compare, float.MaxValue);
-        public static float Min(this IIterable<float> values) => Min(values, Compare, float.MinValue);
-        public static double Max(params double[] values) => Max(values, Compare, double.MaxValue);
-        public static double Min(params double[] values) => Min(values, Compare, double.MinValue);
-        public static double Max(this IIterable<double> values) => Max(values, Compare, double.MaxValue);
-        public static double Min(this IIterable<double> values) => Min(values, Compare, double.MinValue);
-        public static decimal Max(params decimal[] values) => Max(values, Compare, decimal.MaxValue);
-        public static decimal Min(params decimal[] values) => Min(values, Compare, decimal.MinValue);
-        public static decimal Max(this IIterable<decimal> values) => Max(values, Compare, decimal.MaxValue);
-        public static decimal Min(this IIterable<decimal> values) => Min(values, Compare, decimal.MinValue);
+        public static sbyte Max(params sbyte[] values) => Max(OrderingBy<sbyte>(), sbyte.MaxValue, values);
+        public static sbyte Min(params sbyte[] values) => Min(OrderingBy<sbyte>(), sbyte.MinValue, values);
+        public static sbyte Max(this IIterable<sbyte> values) => Max(values, OrderingBy<sbyte>(), sbyte.MaxValue);
+        public static sbyte Min(this IIterable<sbyte> values) => Min(values, OrderingBy<sbyte>(), sbyte.MinValue);
+        public static byte Max(params byte[] values) => Max(OrderingBy<byte>(), byte.MaxValue, values);
+        public static byte Min(params byte[] values) => Min(OrderingBy<byte>(), byte.MinValue, values);
+        public static byte Max(this IIterable<byte> values) => Max(values, OrderingBy<byte>(), byte.MaxValue);
+        public static byte Min(this IIterable<byte> values) => Min(values, OrderingBy<byte>(), byte.MinValue);
+        public static short Max(params short[] values) => Max(OrderingBy<short>(), short.MaxValue, values);
+        public static short Min(params short[] values) => Min(OrderingBy<short>(), short.MinValue, values);
+        public static short Max(this IIterable<short> values) => Max(values, OrderingBy<short>(), short.MaxValue);
+        public static short Min(this IIterable<short> values) => Min(values, OrderingBy<short>(), short.MinValue);
+        public static ushort Max(params ushort[] values) => Max(OrderingBy<ushort>(), ushort.MaxValue, values);
+        public static ushort Min(params ushort[] values) => Min(OrderingBy<ushort>(), ushort.MinValue, values);
+        public static ushort Max(this IIterable<ushort> values) => Max(values, OrderingBy<ushort>(), ushort.MaxValue);
+        public static ushort Min(this IIterable<ushort> values) => Min(values, OrderingBy<ushort>(), ushort.MinValue);
+        public static int Max(params int[] values) => Max(OrderingBy<int>(), int.MaxValue, values);
+        public static int Min(params int[] values) => Min(OrderingBy<int>(), int.MinValue, values);
+        public static int Max(this IIterable<int> values) => Max(values, OrderingBy<int>(), int.MaxValue);
+        public static int Min(this IIterable<int> values) => Min(values, OrderingBy<int>(), int.MinValue);
+        public static uint Max(params uint[] values) => Max(OrderingBy<uint>(), uint.MaxValue, values);
+        public static uint Min(params uint[] values) => Min(OrderingBy<uint>(), uint.MinValue, values);
+        public static uint Max(this IIterable<uint> values) => Max(values, OrderingBy<uint>(), uint.MaxValue);
+        public static uint Min(this IIterable<uint> values) => Min(values, OrderingBy<uint>(), uint.MinValue);
+        public static long Max(params long[] values) => Max(OrderingBy<long>(), long.MaxValue, values);
+        public static long Min(params long[] values) => Min(OrderingBy<long>(), long.MinValue, values);
+        public static long Max(this IIterable<long> values) => Max(values, OrderingBy<long>(), long.MaxValue);
+        public static long Min(this IIterable<long> values) => Min(values, OrderingBy<long>(), long.MinValue);
+        public static ulong Max(params ulong[] values) => Max(OrderingBy<ulong>(), ulong.MaxValue, values);
+        public static ulong Min(params ulong[] values) => Min(OrderingBy<ulong>(), ulong.MinValue, values);
+        public static ulong Max(this IIterable<ulong> values) => Max(values, OrderingBy<ulong>(), ulong.MaxValue);
+        public static ulong Min(this IIterable<ulong> values) => Min(values, OrderingBy<ulong>(), ulong.MinValue);
+        public static float Max(params float[] values) => Max(OrderingBy<float>(), float.MaxValue, values);
+        public static float Min(params float[] values) => Min(OrderingBy<float>(), float.MinValue, values);
+        public static float Max(this IIterable<float> values) => Max(values, OrderingBy<float>(), float.MaxValue);
+        public static float Min(this IIterable<float> values) => Min(values, OrderingBy<float>(), float.MinValue);
+        public static double Max(params double[] values) => Max(OrderingBy<double>(), double.MaxValue, values);
+        public static double Min(params double[] values) => Min(OrderingBy<double>(), double.MinValue, values);
+        public static double Max(this IIterable<double> values) => Max(values, OrderingBy<double>(), double.MaxValue);
+        public static double Min(this IIterable<double> values) => Min(values, OrderingBy<double>(), double.MinValue);
+        public static decimal Max(params decimal[] values) => Max(OrderingBy<decimal>(), decimal.MaxValue, values);
+        public static decimal Min(params decimal[] values) => Min(OrderingBy<decimal>(), decimal.MinValue, values);
+        public static decimal Max(this IIterable<decimal> values) => Max(values, OrderingBy<decimal>(), decimal.MaxValue);
+        public static decimal Min(this IIterable<decimal> values) => Min(values, OrderingBy<decimal>(), decimal.MinValue);
 
-        public static A Max<A>(this A[] array, Func<A, A, int> comparator, A initialMaxValue) =>
-            array.FoldLeft(initialMaxValue, (agg, curr) => comparator(agg, curr) > 0 ? agg : curr);
-        public static A Min<A>(this A[] array, Func<A, A, int> comparator, A initialMinValue) =>
-            array.FoldLeft(initialMinValue, (agg, curr) => comparator(agg, curr) < 0 ? agg : curr);
-        public static A Max<A>(this IIterable<A> iterable, Func<A, A, int> comparator, A initialMaxValue) =>
-            iterable.FoldLeft(initialMaxValue, (agg, curr) => comparator(agg, curr) > 0 ? agg : curr);
-        public static A Min<A>(this IIterable<A> iterable, Func<A, A, int> comparator, A initialMinValue) =>
-            iterable.FoldLeft(initialMinValue, (agg, curr) => comparator(agg, curr) < 0 ? agg : curr);
+        public static A Max<A>(Ordering<A> ord, A first, params A[] array) =>
+            array.FoldLeft(first, (max, curr) => ord.Compare(max, curr) > 0 ? max : curr);
+        public static A Min<A>(Ordering<A> ord, A first, params A[] array) =>
+            array.FoldLeft(first, (min, curr) => ord.Compare(min, curr) < 0 ? min : curr);
+        public static A Max<A>(this IIterable<A> iterable, Ordering<A> ord, A initialMaxValue) =>
+            iterable.FoldLeft(initialMaxValue, (max, curr) => ord.Compare(max, curr) > 0 ? max : curr);
+        public static A Min<A>(this IIterable<A> iterable, Ordering<A> ord, A initialMinValue) =>
+            iterable.FoldLeft(initialMinValue, (min, curr) => ord.Compare(min, curr) < 0 ? min : curr);
 
-        public static Option<A> Max<A>(this A[] array, Func<A, A, int> comparator) => Max(Array(array), comparator);
-        public static Option<A> Min<A>(this A[] array, Func<A, A, int> comparator) => Min(Array(array), comparator);
-        public static Option<A> Max<A>(this IIterable<A> iterable, Func<A, A, int> comparator) =>
+        public static Option<A> Max<A>(this A[] array, Ordering<A> ord) => Max(Array(array), ord);
+        public static Option<A> Min<A>(this A[] array, Ordering<A> ord) => Min(Array(array), ord);
+        public static Option<A> Max<A>(this IIterable<A> iterable, Ordering<A> ord) =>
             iterable
                 .HeadOption
-                .Map(first => Max(iterable.Tail, comparator, first));
-        public static Option<A> Min<A>(this IIterable<A> iterable, Func<A, A, int> comparator) =>
+                .Map(first => Max(iterable.Tail, ord, first));
+        public static Option<A> Min<A>(this IIterable<A> iterable, Ordering<A> ord) =>
             iterable
                 .HeadOption
-                .Map(first => Min(iterable.Tail, comparator, first));
+                .Map(first => Min(iterable.Tail, ord, first));
+
+        public static (A, A) MinMax<A>(Ordering<A> ord, A first, params A[] values) => MinMax(Array(values), ord, first);
+        public static (A, A) MinMax<A>(this A[] values, Ordering<A> ord, A defaultValue) => MinMax(Array(values), ord, defaultValue);
+        public static (A, A) MinMax<A>(IIterable<A> iterable, Ordering<A> ord, A defaultValue) =>
+            iterable
+                .FoldLeft((defaultValue, defaultValue), (minMax, it) =>
+                {
+                    var (min, max) = minMax;
+                    if (ord.Compare(it, min) < 0)
+                    {
+                        return (it, max);
+                    }
+                    if (ord.Compare(it, max) > 0)
+                    {
+                        return (min, it);
+                    }
+
+                    return (min, max);
+                });
+
+        public static Option<(A, A)> MinMax<A>(this A[] values, Ordering<A> ord) => MinMax(Array(values), ord);
+        public static Option<(A, A)> MinMax<A>(IIterable<A> iterable, Ordering<A> ord) =>
+            iterable
+                .HeadOption
+                .Map(first => MinMax(iterable.Tail, ord, first));
 
         #endregion
+        
+        #region Int
 
         public static Int Int(byte i) => new Int(i);
         public static Int Int(sbyte i) => new Int(i);
@@ -109,6 +137,10 @@ namespace Runes.Calc
         public static Int Int(ulong i) => new Int(i);
         public static Int Int(BigInteger i) => new Int(i);
 
+        #endregion
+
+        #region Rational
+
         public static Rational Rational(byte num) => Rational(num, 1, true);
         public static Rational Rational(sbyte num) => Rational(num, 1, true);
         public static Rational Rational(short num) => Rational(num, 1, true);
@@ -117,8 +149,8 @@ namespace Runes.Calc
         public static Rational Rational(uint num) => Rational(num, 1, true);
         public static Rational Rational(long num) => Rational(num, 1, true);
         public static Rational Rational(ulong num) => Rational(num, 1, true);
-        public static Rational Rational(decimal num) => Rational((double) num);
-        public static Rational Rational(float num) => Rational((double) num);
+        public static Rational Rational(decimal num) => Rational((double)num);
+        public static Rational Rational(float num) => Rational((double)num);
         public static Rational Rational(double num)
         {
             if (double.IsNaN(num))
@@ -168,5 +200,7 @@ namespace Runes.Calc
                 ? new Rational(aNum, aDen, isSimplified)
                 : new Rational(-aNum, aDen, isSimplified);
         }
+
+        #endregion
     }
 }

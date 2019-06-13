@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Runes.Math;
 
 namespace Runes.Collections
 {
@@ -19,6 +20,7 @@ namespace Runes.Collections
         new IIterable<B> FlatMap<B>(Func<A, ICollection<B>> f);
         new IIterable<B> Map<B>(Func<A, B> f);
         IIterable<A> Reversed();
+        IIterable<A> Sort(Ordering<A> ord);
         new (IIterable<X>, IIterable<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc);
         new IIterable<(A, B)> Zip<B>(ICollection<B> other);
         new IIterable<(A, int)> ZipWithIndex();
@@ -29,5 +31,6 @@ namespace Runes.Collections
         new CC Tail { get; }
 
         new CC Reversed();
+        new CC Sort(Ordering<A> ord);
     }
 }

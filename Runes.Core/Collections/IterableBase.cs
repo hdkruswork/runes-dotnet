@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Runes.Math;
 using static Runes.Predef;
 
 namespace Runes.Collections
@@ -78,6 +79,8 @@ namespace Runes.Collections
         }
 
         public abstract CC Reversed();
+
+        public abstract CC Sort(Ordering<A> ord);
 
         // protected members
 
@@ -266,6 +269,7 @@ namespace Runes.Collections
         IIterable<B> IIterable<A>.FlatMap<B>(Func<A, ICollection<B>> f) => IterableFlatMap(f);
         IIterable<B> IIterable<A>.Map<B>(Func<A, B> f) => IterableMap(f);
         IIterable<A> IIterable<A>.Reversed() => Reversed();
+        IIterable<A> IIterable<A>.Sort(Ordering<A> ord) => Sort(ord);
         (IIterable<X>, IIterable<Y>) IIterable<A>.Unzip<X, Y>(Func<A, (X, Y)> toPairFunc) => IterableUnzip(toPairFunc);
         IIterable<(A, B)> IIterable<A>.Zip<B>(ICollection<B> other) => IterableZip(other);
         IIterable<(A, int)> IIterable<A>.ZipWithIndex() => IterableZipWithIndex();

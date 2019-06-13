@@ -152,7 +152,7 @@ namespace Runes.Collections
             for (long idx = 0; idx < Length; idx += (size + step - 1))
             {
                 var startIdx = GetPhysicalIdx(idx);
-                var adjustedSize = Math.Min(size, Length - idx);
+                var adjustedSize = System.Math.Min(size, Length - idx);
                 var slide = CreateArray(array, startIdx, adjustedSize, this.step);
 
                 slides = slides.Prepend(slide);
