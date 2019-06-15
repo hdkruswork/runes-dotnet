@@ -78,6 +78,11 @@ namespace Runes.Calc
         public static decimal Max(this IIterable<decimal> values) => Max(values, OrderingBy<decimal>(), decimal.MaxValue);
         public static decimal Min(this IIterable<decimal> values) => Min(values, OrderingBy<decimal>(), decimal.MinValue);
 
+        public static Int Max(Int first, params Int[] values) => Max(OrderingBy<Int>(), first, values);
+        public static Int Min(Int first, params Int[] values) => Min(OrderingBy<Int>(), first, values);
+        public static Rational Max(Rational first, params Rational[] values) => Max(OrderingBy<Rational>(), first, values);
+        public static Rational Min(Rational first, params Rational[] values) => Min(OrderingBy<Rational>(), first, values);
+
         public static A Max<A>(Ordering<A> ord, A first, params A[] array) =>
             array.FoldLeft(first, (max, curr) => ord.Compare(max, curr) > 0 ? max : curr);
         public static A Min<A>(Ordering<A> ord, A first, params A[] array) =>
@@ -97,6 +102,11 @@ namespace Runes.Calc
             iterable
                 .HeadOption
                 .Map(first => Min(iterable.Tail, ord, first));
+
+        public static (Int, Int) MinMax(Int first, params Int[] values) =>
+            MinMax(Array(values), OrderingBy<Int>(), first);
+        public static (Rational, Rational) MinMax(Rational first, params Rational[] values) =>
+            MinMax(Array(values), OrderingBy<Rational>(), first);
 
         public static (A, A) MinMax<A>(Ordering<A> ord, A first, params A[] values) => MinMax(Array(values), ord, first);
         public static (A, A) MinMax<A>(this A[] values, Ordering<A> ord, A defaultValue) => MinMax(Array(values), ord, defaultValue);
@@ -199,6 +209,24 @@ namespace Runes.Calc
             return numerator.Sign == denominator.Sign
                 ? new Rational(aNum, aDen, isSimplified)
                 : new Rational(-aNum, aDen, isSimplified);
+        }
+
+        #endregion
+
+        #region Range
+
+        public static Range To(this Int from, Int inclusiveTo) => Range(from, inclusiveTo);
+
+        public static Range DownTo(this Int from, Int inclusiveTo) => Range(from, inclusiveTo, -1);
+
+        public static Range Range(Int from, Int inclusiveTo) => Range(from, inclusiveTo, 1);
+
+        public static Range Range(Int from, Int inclusiveTo, int increment)
+        {
+            var (min, max) = MinMax(OrderingBy<Int>(), from, inclusiveTo);
+            return increment >= 0
+                ? new Range(min, max, increment)
+                : new Range(max, min, increment);
         }
 
         #endregion
