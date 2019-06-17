@@ -1,14 +1,23 @@
 ﻿using Runes.Collections;
 using System;
 using System.Numerics;
-using Runes.Collections.Mutable;
 using Runes.Math;
 
 namespace Runes
 {
     public static class Predef
     {
-        public static Option<A> As<A>(this object obj) where A: class => obj is A casted ? Some(casted) : None<A>();
+        public static bool As<A>(this object obj, out A result)
+        {
+            if (obj is A cast)
+            {
+                result = cast;
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
 
         public static int GetFieldsHashCode(params object[] fields) =>
             fields.FoldLeft(-1534900553, (hash, field) => hash * -1521134295 + field.GetHashCode());
@@ -38,7 +47,10 @@ namespace Runes
 
         #region Option
 
+        public static Option<A> Flatten<A>(this Option<Option<A>> option) => option.GetOrElse(None<A>());
+
         public static Option<A> Option<A>(A value) where A : class => value != null ? Some(value) : None<A>();
+
         public static Option<A> Option<A>(A? value) where A : struct => value.HasValue ? Some(value.Value) : None<A>();
 
         public static Option<A> None<A>() => Runes.Option<A>.None;
@@ -165,45 +177,10 @@ namespace Runes
 
         public static Array<char> ToArray(this string text) => Array(text.ToCharArray());
 
+        public static That To<A, That>(this A[] array, IFactory<A, That> factory) where That : IIterable<A> =>
+            factory.From(array);
+
         public static Array<A> ToArray<A>(this A[] array) => Array(array);
-
-        public static MutableArray<A> ToMArray<A>(this A[] array) => MArray(array);
-
-        public static Array<A> ToArray<A>(this ICollection<A> collection)
-        {
-            if (collection is Array<A> array)
-            {
-                return array;
-            }
-
-            var iterable = ToIterable(collection);
-            return Collections.Array<A>.CreateArrayFrom(iterable);
-        }
-
-        public static MutableArray<A> ToMArray<A>(this ICollection<A> collection)
-        {
-            if (collection is MutableArray<A> array)
-            {
-                return array;
-            }
-
-            var iterable = ToIterable(collection);
-            return MutableArray<A>.CreateArrayFrom(iterable);
-        }
-
-        public static List<A> ToList<A>(this ICollection<A> collection)
-        {
-            if (collection is List<A> list)
-            {
-                return list;
-            }
-
-            var res = EmptyList<A>();
-            var iterable = ToIterable(collection);
-            iterable.Reversed().Foreach(it => res = res.Prepend(it));
-
-            return res;
-        }
 
         public static Stream<A> ToStream<A>(this A[] array)
         {
@@ -215,33 +192,11 @@ namespace Runes
             return GetStream(array, 0);
         }
 
-        public static Stream<A> ToStream<A>(this ICollection<A> collection)
-        {
-            if (collection is Stream<A> stream)
-            {
-                return stream;
-            }
-
-            return collection.HeadOption.GetIfPresent(out A head)
-                ? Stream(head, () => collection.Tail.ToStream())
-                : EmptyStream<A>();
-        }
-
-        public static IIterable<A> ToIterable<A>(this ICollection<A> collection)
-        {
-            if (collection is IIterable<A> iterable)
-            {
-                return iterable;
-            }
-
-            throw new NotSupportedException("Non iterable collections cannot be handled as iterable");
-        }
-
         #endregion
 
         #region Lists
 
-        public static List<A> EmptyList<A>() => Lists.Empty<A>();
+        public static List<A> EmptyList<A>() => Collections.List<A>.Empty;
 
         public static List<A> List<A>(params A[] items)
         {
@@ -256,22 +211,13 @@ namespace Runes
 
             return res;
         }
-        public static List<A> List<A>(A head, List<A> tail) => Lists.Create(head, tail);
-
-        public static List<A> ToList<A>(this IIterable<A> iterable)
-        {
-            var builder = Collections.List<A>.CreateListBuilder();
-            iterable.FoldLeft(Unit(), (_, it) => Unit(() => builder.Add(it)));
-
-            return builder.Build();
-        }
+        public static List<A> List<A>(A head, List<A> tail) => Collections.List<A>.Create(head, tail);
 
         #endregion
 
         #region Arrays
 
         public static Array<A> EmptyArray<A>() => Collections.Array<A>.Empty;
-        public static MutableArray<A> EmptyMArray<A>() => MutableArray<A>.Empty;
 
         public static Array<A> Array<A>(params A[] array) =>
             array != null && array.Length > 0
@@ -279,15 +225,7 @@ namespace Runes
                 : EmptyArray<A>();
 
         internal static Array<A> Array<A>(A[] array, long startIndex, long length, int step) =>
-            new Array<A>(array, startIndex, length, step);
-
-        public static MutableArray<A> MArray<A>(params A[] array) =>
-            array != null && array.Length > 0
-                ? MArray(array, 0, array.LongLength, 1)
-                : EmptyMArray<A>();
-
-        internal static MutableArray<A> MArray<A>(A[] array, long startIndex, long length, int step) =>
-            new MutableArray<A>(array, startIndex, length, step);
+            Collections.Array<A>.Factory.From(array, startIndex, length, step);
 
         #endregion
 
@@ -295,14 +233,19 @@ namespace Runes
 
         public static Stream<A> EmptyStream<A>() => Collections.Stream<A>.Empty;
 
-        public static Stream<A> Flatten<A, CC>(this Stream<CC> stream) where CC : IIterable<A, CC> =>
-            stream.HeadOption.GetIfPresent(out CC head)
-                ? head.ToStream().Append(() => stream.Tail.Flatten<A, CC>())
+        public static Stream<A> Flatten<A>(this Stream<IIterable<A>> stream) =>
+            stream.HeadOption.GetIfPresent(out var head)
+                ? head.ToStream().Append(() => stream.Tail.Flatten())
+                : EmptyStream<A>();
+
+        public static Stream<A> Flatten<A>(this Stream<Option<A>> stream) =>
+            stream.HeadOption.GetIfPresent(out var head)
+                ? head.ToStream().Append(() => stream.Tail.Flatten())
                 : EmptyStream<A>();
 
         public static Stream<A> Stream<A>(A head) => Stream(head, EmptyStream<A>());
-        public static Stream<A> Stream<A>(A head, Stream<A> tail) => new Stream<A>.NonEmptyStream(head, tail);
-        public static Stream<A> Stream<A>(A head, Func<Stream<A>> tailFunc) => new Stream<A>.NonEmptyStream(head, tailFunc);
+        public static Stream<A> Stream<A>(A head, Stream<A> tail) => Collections.Stream<A>.Create(head, () => tail);
+        public static Stream<A> Stream<A>(A head, Func<Stream<A>> tailFunc) => Collections.Stream<A>.Create(head, tailFunc);
 
         public static Stream<BigInteger> StartStream(BigInteger start, int step = 1) =>
             Stream(start, () => StartStream(start + step, step));

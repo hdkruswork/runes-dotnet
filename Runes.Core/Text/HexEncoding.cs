@@ -44,8 +44,8 @@ namespace Runes.Text
                 : str;
         }
 
-        public HexDecoder WithCase(TextCaseConstraint constraint) =>
-            constraint.Equals(Object.constraint) ? Object : new HexDecoder(constraint);
+        public HexDecoder WithCase(TextCaseConstraint newConstraint) =>
+            newConstraint.Equals(Object.constraint) ? Object : new HexDecoder(newConstraint);
     }
 
     public sealed class HexEncoder : ITextEncoder<byte[]>
@@ -55,10 +55,8 @@ namespace Runes.Text
         private HexEncoder() { }
 
         public byte[] Encode(string text) =>
-            text.ToLower()
-                .ToCharArray()
-                .ToStream()
-                .Sliding(2, 2)
+            Array(text.ToLower().ToCharArray())
+                .Slide(2)
                 .Map(pair =>
                 {
                     var (hiChar, lowChar, _) = pair;
@@ -68,7 +66,7 @@ namespace Runes.Text
                     byte low = lowIndex >= 0 ? (byte)lowIndex : byte.MinValue;
                     return (byte)(hi | low);
                 })
-                .ToMArray();
+                .ToMutableArray();
     }
 
     public static class HexAlphabet

@@ -2,10 +2,10 @@
 using System;
 using System.Numerics;
 
-using static Runes.Calc.Predef;
+using static Runes.Math.Predef;
 using static Runes.Predef;
 
-namespace Runes.Calc
+namespace Runes.Math
 {
     public sealed class Int : Scalar<Int>, IEquatable<BigInteger>, IEquatable<int>
     {

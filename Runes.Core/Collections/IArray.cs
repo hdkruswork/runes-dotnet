@@ -1,36 +1,33 @@
 ﻿using System;
+using Runes.Math;
 
 namespace Runes.Collections
 {
-    public interface IArray<A> : IIterable<A>
+    public interface IArray<A> : IEagerIterable<A>, IIndexable<A>
     {
         Option<A> this[long index] { get; }
-
-        IArray<A> Init { get; }
-        Option<A> Rear { get; }
+        Option<A> this[Index index] { get; }
 
         long Length { get; }
 
-        new IArray<B> As<B>() where B : class;
-        new IArray<B> Collect<B>(Func<A, Option<B>> f);
-        new IArray<B> FlatMap<B>(Func<A, ICollection<B>> f);
-        Unit For(Action<A, long> action);
-        new IArray<B> Map<B>(Func<A, B> f);
-        new(IArray<X>, IArray<Y>) Unzip<X, Y>(Func<A, (X, Y)> toPairFunc);
-        new IArray<(A, B)> Zip<B>(ICollection<B> other);
-        new IArray<(A, int)> ZipWithIndex();
+        new IArray<A> Tail { get; }
+        IArray<A> Init { get; }
+        Option<A> Rear { get; }
 
         That FoldRight<That>(That initialValue, Func<That, A, That> f);
         That FoldRightWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f);
-        (IArray<A>, IArray<A>) Split(long index);
-        IIterable<IArray<A>> Sliding(int size, int step = 1);
+        (IArray<A>, IArray<A>) SplitAt(long idx);
+        IIterable<IArray<A>> Slide(long size, long nextStep);
+
+        new IArray<(A, Int)> ZipWithIndex();
     }
 
-    public interface IArray<A, CC> : IArray<A>, IIterable<A, CC> where CC : IArray<A, CC>
+    public interface IArray<A, CC> : IArray<A>, IEagerIterable<A, CC> where CC : IArray<A, CC>
     {
+        new CC Tail { get; }
         new CC Init { get; }
 
-        new (CC, CC) Split(long index);
-        new IIterable<CC> Sliding(int size, int step = 1);
+        new (CC, CC) SplitAt(long idx);
+        new IIterable<CC> Slide(long size, long nextStep);
     }
 }

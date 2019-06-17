@@ -3,10 +3,10 @@ using System.Globalization;
 using System.Numerics;
 using System.Text;
 
-using static Runes.Calc.Predef;
+using static Runes.Math.Predef;
 using static Runes.Predef;
 
-namespace Runes.Calc
+namespace Runes.Math
 {
     public class Rational
         : Scalar<Rational>, IEquatable<Int>

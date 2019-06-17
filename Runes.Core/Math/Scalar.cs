@@ -2,7 +2,7 @@
 using Runes.Math;
 using static Runes.Predef;
 
-namespace Runes.Calc
+namespace Runes.Math
 {
     public abstract class Scalar<This> : IOrdered<This>, IEquatable<This>
         where This : Scalar<This>

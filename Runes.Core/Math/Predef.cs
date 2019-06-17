@@ -1,16 +1,15 @@
 ﻿using Runes.Collections;
-using Runes.Math;
 using System;
 using System.Globalization;
 using System.Numerics;
 
 using static Runes.Predef;
 
-namespace Runes.Calc
+namespace Runes.Math
 {
     public static class Predef
     {
-        public static Int GCD(Int a, Int b) => Calc.Int.GreatestCommonDivisor(a, b);
+        public static Int GCD(Int a, Int b) => Math.Int.GreatestCommonDivisor(a, b);
         public static Int LCM(Int a, Int b) => a / GCD(a, b) * b;
 
         #region Comparators functions
@@ -165,7 +164,8 @@ namespace Runes.Calc
         {
             if (double.IsNaN(num))
                 throw new ArgumentException("Argument is not a number", nameof(num));
-            else if (double.IsInfinity(num))
+            
+            if (double.IsInfinity(num))
                 throw new ArgumentException("Argument is infinity", nameof(num));
 
             var cultureInfo = CultureInfo.CurrentCulture;
@@ -182,51 +182,33 @@ namespace Runes.Calc
             return Rational(numerator, denominator)
                 .Simplify();
         }
-        public static Rational Rational(BigInteger number) => Rational(Int(number), Calc.Int.One, true);
-        public static Rational Rational(Int number) => Rational(number, Calc.Int.One, true);
+        public static Rational Rational(BigInteger number) => Rational(Int(number), Math.Int.One, true);
+        public static Rational Rational(Int number) => Rational(number, Math.Int.One, true);
         public static Rational Rational(Int num, Int den) => Rational(num, den, false);
 
         internal static Rational Rational(Int numerator, Int denominator, bool isSimplified)
         {
-            if (denominator.Equals(Calc.Int.Zero))
+            if (denominator.Equals(Math.Int.Zero))
                 throw new DivideByZeroException();
 
-            if (numerator.Equals(Calc.Int.Zero))
+            if (numerator.Equals(Math.Int.Zero))
             {
-                return Calc.Rational.Zero;
+                return Math.Rational.Zero;
             }
 
             if (numerator.Equals(denominator))
             {
                 return numerator.Sign == denominator.Sign
-                    ? Calc.Rational.One
-                    : Calc.Rational.MinusOne;
+                    ? Math.Rational.One
+                    : Math.Rational.MinusOne;
             }
 
-            var aNum = Calc.Int.Abs(numerator);
-            var aDen = Calc.Int.Abs(denominator);
+            var aNum = Math.Int.Abs(numerator);
+            var aDen = Math.Int.Abs(denominator);
 
             return numerator.Sign == denominator.Sign
                 ? new Rational(aNum, aDen, isSimplified)
                 : new Rational(-aNum, aDen, isSimplified);
-        }
-
-        #endregion
-
-        #region Range
-
-        public static Range To(this Int from, Int inclusiveTo) => Range(from, inclusiveTo);
-
-        public static Range DownTo(this Int from, Int inclusiveTo) => Range(from, inclusiveTo, -1);
-
-        public static Range Range(Int from, Int inclusiveTo) => Range(from, inclusiveTo, 1);
-
-        public static Range Range(Int from, Int inclusiveTo, int increment)
-        {
-            var (min, max) = MinMax(OrderingBy<Int>(), from, inclusiveTo);
-            return increment >= 0
-                ? new Range(min, max, increment)
-                : new Range(max, min, increment);
         }
 
         #endregion
