@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Runes.Math
+namespace Runes.Math.Algorithms
 {
     public sealed class QuickSortAlgorithm<A> : ISortingAlgorithm<A, A[]>
     {

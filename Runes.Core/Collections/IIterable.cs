@@ -18,6 +18,8 @@ namespace Runes.Collections
         IIterable<A> DropsWhileNot(Func<A, bool> p, out Int dropped);
         bool Exists(Func<A, bool> p);
         bool ExistsNot(Func<A, bool> p);
+        new IIterable<A> Filter(Func<A, bool> p);
+        new IIterable<A> FilterNot(Func<A, bool> p);
         IIterable<B> FlatMap<B>(Func<A, IIterable<B>> f);
         bool ForAll(Func<A, bool> p);
         That FoldLeft<That>(That initialValue, Func<That, A, That> f);
@@ -33,6 +35,7 @@ namespace Runes.Collections
         Array<A> ToArray();
         List<A> ToList();
         A[] ToMutableArray();
+        Set<A> ToSet();
         Stream<A> ToStream();
         (IIterable<X>, IIterable<Y>) Unzip<X, Y>(Func<A, (X, Y)> f);
         IIterable<(A, B)> Zip<B>(IIterable<B> other);

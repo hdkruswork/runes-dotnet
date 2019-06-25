@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Runes.Math
+namespace Runes.Math.Algorithms
 {
     public interface ISortingAlgorithm<A, CC> where CC : IEnumerable<A>
     {

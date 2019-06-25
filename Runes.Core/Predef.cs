@@ -2,6 +2,7 @@
 using System;
 using System.Numerics;
 using Runes.Math;
+using Runes.Math.Algorithms;
 
 namespace Runes
 {

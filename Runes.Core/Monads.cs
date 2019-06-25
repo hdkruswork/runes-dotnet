@@ -123,6 +123,7 @@ namespace Runes
             GetIfPresent(out var value)
                 ? new[] {value}
                 : new A[0];
+        public Set<A> ToSet() => To(Collections.Set<A>.IterableSet.Factory);
         public Stream<A> ToStream() =>
             GetIfPresent(out var value)
                 ? Stream(value)
@@ -245,6 +246,10 @@ namespace Runes
         IIterable<A> IIterable<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
 
         IIterable<A> IIterable<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
+
+        IIterable<A> IIterable<A>.Filter(Func<A, bool> p) => Filter(p);
+
+        IIterable<A> IIterable<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
 
         IIterable<B> IIterable<A>.FlatMap<B>(Func<A, IIterable<B>> f) => FlatMap(f, GetFactory<B>());
 

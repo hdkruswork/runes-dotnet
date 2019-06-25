@@ -42,19 +42,9 @@ namespace Runes.Collections
 
         public override bool IsEmpty => HeadOption.IsEmpty;
 
-        public override bool Contains(A item) => Exists(it => it.Equals(item));
+        public override bool Contains(A item) => CollectionHelper.Contains(this, item);
 
-        public THIS Drops(Int count)
-        {
-            var current = This;
-            while (NonEmpty && count > 0)
-            {
-                current = current.Tail;
-                count -= 1;
-            }
-
-            return current;
-        }
+        public THIS Drops(Int count) => CollectionHelper.Drops<A, THIS>(This, count);
 
         public THIS DropsWhile(Func<A, bool> p) => DropsWhile(p, out _, true);
 
@@ -68,124 +58,41 @@ namespace Runes.Collections
 
         public bool ExistsNot(Func<A, bool> p) => Exists(p, false);
 
-        public virtual bool ForAll(Func<A, bool> p)
-        {
-            var current = This;
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                if (!p(head))
-                {
-                    return false;
-                }
-
-                current = current.Tail;
-            }
-
-            return true;
-        }
+        public virtual bool ForAll(Func<A, bool> p) => CollectionHelper.ForAll(this, p);
 
         public virtual That FoldLeft<That>(That initialValue, Func<That, A, That> f) =>
-            FoldLeftWhile(initialValue, (_, it) => true, f);
+            CollectionHelper.FoldLeft(this, initialValue, f);
 
-        public virtual That FoldLeftWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f)
-        {
-            var res = initialValue;
-            var current = This;
-            while (current.HeadOption.GetIfPresent(out var head) && p(res, head))
-            {
-                res = f(res, head);
-                current = current.Tail;
-            }
+        public virtual That FoldLeftWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f) =>
+            CollectionHelper.FoldLeftWhile(this, initialValue, p, f);
 
-            return res;
-        }
+        public Unit Foreach(Action<A> action) => 
+            CollectionHelper.Foreach(this, action);
 
-        public Unit Foreach(Action<A> action) => ForeachWhile(_ => true, action);
+        public Unit ForeachWhile(Func<A, bool> p, Action<A> action) =>
+            CollectionHelper.ForeachWhile(this, p, action);
 
-        public Unit ForeachWhile(Func<A, bool> p, Action<A> action) => Unit(() =>
-        {
-            var current = This;
-            while (current.HeadOption.GetIfPresent(out var head) && p(head))
-            {
-                action(head);
-                current = current.Tail;
-            }
-        });
+        public virtual IEnumerator<A> GetEnumerator() => CollectionHelper.GetEnumerator(this);
 
-        public virtual IEnumerator<A> GetEnumerator()
-        {
-            var current = This;
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                yield return head;
-                current = current.Tail;
-            }
-        }
+        public virtual (THIS, THIS) Partition(Func<A, bool> p) => CollectionHelper.Partition(this, p, GetFactory());
 
-        public virtual (THIS, THIS) Partition(Func<A, bool> p)
-        {
-            var factory = GetFactory();
-            var leftBuilder = factory.NewBuilder();
-            var rightBuilder = factory.NewBuilder();
-
-            foreach (var item in this)
-            {
-                if (p(item))
-                {
-                    leftBuilder.Append(item);
-                }
-                else
-                {
-                    rightBuilder.Append(item);
-                }
-            }
-
-            return (leftBuilder.Build(), rightBuilder.Build());
-        }
-
-        public virtual THIS Take(Int count)
-        {
-            var (colBuilder, _) = FoldLeftWhile(
-                (GetFactory().NewBuilder(), count),
-                (agg, _) =>
-                {
-                    var (_, ct) = agg;
-                    return ct > 0;
-                },
-                (agg, it) =>
-                {
-                    var (builder, ct) = agg;
-                    return (builder.Append(it), ct - 1);
-                }
-            );
-
-            return colBuilder.Build();
-        }
+        public virtual THIS Take(Int count) => CollectionHelper.Take(This, count, GetFactory());
 
         public THIS TakeWhile(Func<A, bool> p) => TakeWhile(p, true);
 
         public THIS TakeWhileNot(Func<A, bool> p) => TakeWhile(p, false);
 
-        public That To<That>(IFactory<A, That> factory) where That : IIterable<A> => factory.From(this);
+        public That To<That>(IFactory<A, That> factory) where That : IIterable<A> => CollectionHelper.To(this, factory);
 
         public Array<A> ToArray() => To(Array<A>.Factory);
 
-        public List<A> ToList() => To(List<A>.Factory);
+        public List<A> ToList() => CollectionHelper.ToList(this);
 
-        public A[] ToMutableArray()
-        {
-            var list = ToList();
-            var array = new A[(long)list.Size];
-            list.ZipWithIndex().Foreach(pair =>
-            {
-                var (it, idx) = pair;
-                array[(long)idx] = it;
-            });
+        public A[] ToMutableArray() => CollectionHelper.ToMutableArray(this);
 
-            return array;
-        }
+        public Set<A> ToSet() => CollectionHelper.ToSet(this);
 
-        public Stream<A> ToStream() => To(Stream<A>.Factory);
+        public Stream<A> ToStream() => CollectionHelper.ToStream(this);
 
         public abstract class Builder<BB> : IIterableBuilder<A, THIS, BB> where BB : Builder<BB>
         {
@@ -208,137 +115,38 @@ namespace Runes.Collections
 
         // protected members
 
-        protected That As<B, That>(IFactory<B, That> factory) where That : IIterable<B>
-        {
-            var current = This;
-            var builder = factory.NewBuilder();
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                if (head.As<B>(out var b))
-                {
-                    builder.Append(b);
-                }
-                current = current.Tail;
-            }
+        protected That As<B, That>(IFactory<B, That> factory) where That : IIterable<B> => CollectionHelper.As(this, factory);
 
-            return builder.Build();
-        }
+        protected That Collect<B, That>(Func<A, Option<B>> f, IFactory<B, That> factory) where That : IIterable<B> =>
+            CollectionHelper.Collect(this, f, factory);
 
-        protected That Collect<B, That>(Func<A, Option<B>> f, IFactory<B, That> factory) where That : IIterable<B>
-        {
-            var current = This;
-            var builder = factory.NewBuilder();
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                var option = f(head);
-                option.Foreach(it => builder.Append(it));
-                current = current.Tail;
-            }
+        protected virtual THIS DropsWhile(Func<A, bool> p, out Int dropped, bool isAffirmative) =>
+            CollectionHelper.DropsWhile(This, p, out dropped, isAffirmative);
 
-            return builder.Build();
-        }
-
-        protected virtual THIS DropsWhile(Func<A, bool> p, out Int dropped, bool isAffirmative)
-        {
-            var res = This;
-            dropped = 0;
-            while (res.HeadOption.GetIfPresent(out var head) && p(head) == isAffirmative)
-            {
-                res = res.Tail;
-                dropped += 1;
-            }
-
-            return res;
-        }
-
-        protected virtual bool Exists(Func<A, bool> p, bool isAffirmative)
-        {
-            var current = This;
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                if (p(head) == isAffirmative)
-                {
-                    return true;
-                }
-
-                current = current.Tail;
-            }
-            return false;
-        }
+        protected virtual bool Exists(Func<A, bool> p, bool isAffirmative) =>
+            CollectionHelper.Exists(this, p, isAffirmative);
 
         protected override THIS Filter(Func<A, bool> p, bool isAffirmative) =>
-            FoldLeft(GetFactory().NewBuilder(), (builder, item) => p(item) ? builder.Append(item) : builder)
-                .Build();
+            CollectionHelper.Filter(This, p, isAffirmative, GetFactory());
 
-        protected That FlatMap<B, That>(Func<A, IIterable<B>> f, IFactory<B, That> factory) where That : IIterable<B>
-        {
-            var current = This;
-            var builder = factory.NewBuilder();
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                var iterable = f(head);
-                iterable.Foreach(it => builder.Append(it));
-                current = current.Tail;
-            }
-
-            return builder.Build();
-        }
+        protected That FlatMap<B, That>(Func<A, IIterable<B>> f, IFactory<B, That> factory) where That : IIterable<B> =>
+            CollectionHelper.FlatMap(this, f, factory);
 
         protected abstract IFactory<A, THIS> GetFactory();
 
         protected abstract IFactory<B, IIterable<B>> GetFactory<B>();
 
-        protected That Map<B, That>(Func<A, B> f, IFactory<B, That> factory) where That : IIterable<B>
-        {
-            var current = This;
-            var builder = factory.NewBuilder();
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                var b = f(head);
-                builder.Append(b);
-                current = current.Tail;
-            }
-
-            return builder.Build();
-        }
+        protected That Map<B, That>(Func<A, B> f, IFactory<B, That> factory) where That : IIterable<B> =>
+            CollectionHelper.Map(this, f, factory);
 
         protected virtual THIS TakeWhile(Func<A, bool> p, bool isAffirmative) =>
-            FoldLeftWhile(GetFactory().NewBuilder(), (_, it) => p(it) == isAffirmative, (b, it) => b.Append(it))
-                .Build();
+            CollectionHelper.TakeWhile(This, p, isAffirmative, GetFactory());
 
         protected (Left, Right) Unzip<X, Y, Left, Right>(Func<A, (X, Y)> f, IFactory<X, Left> leftFactory, IFactory<Y, Right> rightFactory)
-            where Left : IIterable<X>
-            where Right : IIterable<Y>
-        {
-            var current = This;
-            var xBuilder = leftFactory.NewBuilder();
-            var yBuilder = rightFactory.NewBuilder();
-            while (current.HeadOption.GetIfPresent(out var head))
-            {
-                var (x, y) = f(head);
-                xBuilder.Append(x);
-                yBuilder.Append(y);
-                current = current.Tail;
-            }
-
-            return (xBuilder.Build(), yBuilder.Build());
-        }
+            where Left : IIterable<X> where Right : IIterable<Y> => CollectionHelper.Unzip(this, f, leftFactory, rightFactory);
 
         protected That Zip<B, That>(IIterable<B> other, IFactory<(A, B), That> factory)
-            where That : IIterable<(A, B)>
-        {
-            var currentThis = This;
-            var currentOther = other;
-            var builder = factory.NewBuilder();
-            while (currentThis.HeadOption.GetIfPresent(out var a) && other.HeadOption.GetIfPresent(out var b))
-            {
-                builder.Append((a, b));
-                currentThis = currentThis.Tail;
-                currentOther = currentOther.Tail;
-            }
-
-            return builder.Build();
-        }
+            where That : IIterable<(A, B)> => CollectionHelper.Zip(this, other, factory);
 
         // Private members
 
@@ -357,6 +165,10 @@ namespace Runes.Collections
         IIterable<A> IIterable<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
 
         IIterable<A> IIterable<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
+
+        IIterable<A> IIterable<A>.Filter(Func<A, bool> p) => Filter(p);
+
+        IIterable<A> IIterable<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
 
         IIterable<B> IIterable<A>.FlatMap<B>(Func<A, IIterable<B>> f) => FlatMap(f, GetFactory<B>());
 
