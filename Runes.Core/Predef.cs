@@ -183,6 +183,8 @@ namespace Runes
 
         public static Array<A> ToArray<A>(this A[] array) => Array(array);
 
+        public static Set<A> ToSet<A>(this A[] array) => array.ToArray().ToSet();
+
         public static Stream<A> ToStream<A>(this A[] array)
         {
             Stream<A> GetStream(A[] arr, long start) =>
