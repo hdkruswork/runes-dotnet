@@ -1,4 +1,6 @@
-﻿namespace Runes.Collections.Mutable
+﻿using static Runes.Predef;
+
+namespace Runes.Collections.Mutable
 {
     public class Queue<A>
     {
@@ -9,6 +11,28 @@
 
         public bool IsEmpty => Head.Next == null;
         public bool NonEmpty => !IsEmpty;
+
+        public Option<A> Dequeue()
+        {
+            lock (Head)
+            {
+                var res = InnerPeek();
+                if (res.NonEmpty)
+                {
+                    lock(Head.Next)
+                    {
+                        if (Head.Next == Rear)
+                        {
+                            Rear = Head;
+                        }
+
+                        Head.Next = Head.Next.Next;
+                    }
+                }
+
+                return res;
+            }
+        }
 
         public void Enqueue(A info)
         {
@@ -26,33 +50,11 @@
                 return InnerPeek();
             }
         }
-        public Option<A> Dequeue()
-        {
-            lock (Head)
-            {
-                var res = InnerPeek();
-                if (Head.Next != null)
-                {
-                    if (Head.Next == Rear)
-                    {
-                        lock (Rear)
-                        {
-                            if (Head.Next == Rear)
-                            {
-                                Rear = Head;
-                            }
-                        }
-                    }
-                    Head.Next = Head.Next.Next;
-                }
-                return res;
-            }
-        }
 
         private QueueNode Head { get; }
         private QueueNode Rear { get; set; }
 
-        private Option<A> InnerPeek() => Predef.Option(Head.Next).Map(n => n.Info);
+        private Option<A> InnerPeek() => Option(Head.Next).Map(n => n.Info);
 
         private class QueueNode
         {
