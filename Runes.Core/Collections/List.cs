@@ -25,6 +25,9 @@ namespace Runes.Collections
 
         public override List<A> Prepend(A item) => Create(item, this);
 
+        public List<Array<A>> Slice(int size, int nextStep) =>
+            CollectionHelper.Slice(this, Array<A>.Factory, List<Array<A>>.Factory, size, nextStep);
+
         public (List<X>, List<Y>) Unzip<X, Y>(Func<A, (X, Y)> f) => Unzip(f, List<X>.Factory, List<Y>.Factory);
 
         public List<(A, B)> Zip<B>(IIterable<B> other) => Zip(other, List<(A, B)>.Factory);
@@ -79,6 +82,8 @@ namespace Runes.Collections
         IList<A> IList<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
 
         IList<A> IList<A>.Reverse() => Reverse();
+
+        IList<IArray<A>> IList<A>.Slice(int size, int nextStep) => Slice(size, nextStep).As<IArray<A>>();
 
         IList<A> IList<A>.Sort(Ordering<A> ord) => Sort(ord);
 

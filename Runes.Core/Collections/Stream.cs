@@ -83,6 +83,17 @@ namespace Runes.Collections
         public Stream<A> Prepend(IIterable<A> iterable) =>
             iterable.ToStream().Append(this);
 
+        public Stream<Array<A>> Slice(int size, int nextStep)
+        {
+            var currStep = nextStep > 0 ? nextStep : 1;
+            var head = Take(size).ToArray();
+            var tail = Drops(currStep);
+
+            return nextStep > 0 && head.NonEmpty
+                ? Stream(head, () => tail.Slice(size, currStep))
+                : Stream<Array<A>>.Empty;
+        }
+
         public override Stream<A> Take(Int count) =>
             count > 0 && HeadOption.GetIfPresent(out var head)
                 ? Create(head, () => Tail.Take(count - 1))
@@ -171,6 +182,8 @@ namespace Runes.Collections
         IStream<A> IStream<A>.Prepend(A item) => Prepend(item);
 
         IStream<A> IStream<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
+
+        IStream<IArray<A>> IStream<A>.Slice(int size, int nextStep) => Slice(size, nextStep).As<IArray<A>>();
 
         IStream<A> IStream<A>.Take(Int count) => Take(count);
 

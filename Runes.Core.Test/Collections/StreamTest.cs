@@ -1,9 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Numerics;
+using static Runes.Predef;
 
-using static Runes.Collections.Immutable.Streams;
-using static Runes.Lazies;
-
-namespace Runes.Collections.Immutable.Test
+namespace Runes.Collections.Test
 {
     [TestClass]
     public class StreamTest
@@ -11,9 +10,9 @@ namespace Runes.Collections.Immutable.Test
         [TestMethod]
         public void TestFibonacci()
         {
-            Stream<int> fibonacci() => Stream(0, 1, Lazy(
-                () => fibonacci().Zip(fibonacci().Tail).Map(p => p.Item1 + p.Item2)
-            ));
+            static Stream<int> fibonacci() =>
+                Stream(0, 1).Append(() => fibonacci().Zip(fibonacci().Tail).Map(p => p.Item1 + p.Item2));
+
             var fibStream = fibonacci();
 
             var expected = Stream(0, 1, 1, 2, 3, 5, 8, 13, 21, 34)
@@ -25,9 +24,8 @@ namespace Runes.Collections.Immutable.Test
         [TestMethod]
         public void TestFactorial()
         {
-            Stream<int> factorial() => Stream(1, Lazy(
-                () => factorial().Zip(Streams.StartStream(1)).Map(p => p.Item1 * p.Item2)
-            ));
+            static Stream<BigInteger> factorial() =>
+                Stream(1, () => factorial().Zip(StartStream(1)).Map(p => p.Item1 * p.Item2));
 
             var factStream = factorial();
 
@@ -38,12 +36,13 @@ namespace Runes.Collections.Immutable.Test
         }
 
         [TestMethod]
-        public void TestSliding()
+        public void TestSlicing()
         {
             var pairs = Stream(1, 2, 3, 4, 5, 6)
-                .Sliding(2, 2)
-                .Collect(arr => (arr[0], arr[1]))
-                .ToArray();
+                .Slice(2, 2)
+                .Map(arr => arr.ToMutableArray())
+                .Collect(arr => Some((arr[0L], arr[1L])))
+                .ToMutableArray();
 
             Assert.AreEqual((1, 2), pairs[0]);
             Assert.AreEqual((3, 4), pairs[1]);

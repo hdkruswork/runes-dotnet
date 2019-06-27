@@ -40,6 +40,24 @@ namespace Runes.Collections
             return builder.Build();
         }
 
+        public static bool Correspond<A, B>(IIterable<A> iter1, IIterable<B> iter2, Func<A, B, bool> f)
+        {
+            var curr1 = iter1;
+            var curr2 = iter2;
+            while (curr1.HeadOption.GetIfPresent(out var head1) && curr2.HeadOption.GetIfPresent(out var head2))
+            {
+                if (!f(head1, head2))
+                {
+                    return false;
+                }
+
+                curr1 = curr1.Tail;
+                curr2 = curr2.Tail;
+            }
+
+            return true;
+        }
+
         public static Set<A> Difference<A>(Set<A> set1, Set<A> set2)
         {
             if (set1.IsEmpty || set2 == Set<A>.Universe)
@@ -92,6 +110,19 @@ namespace Runes.Collections
 
                 current = current.Tail;
             }
+            return false;
+        }
+
+        public static bool Exists<A>(Func<A, bool> p, bool isAffirmative, params IIterable<A>[] iterables)
+        {
+            foreach (var iterable in iterables)
+            {
+                if (Exists(iterable, p, isAffirmative))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -150,6 +181,19 @@ namespace Runes.Collections
                 }
 
                 current = current.Tail;
+            }
+
+            return true;
+        }
+
+        public static bool ForAll<A>(Func<A, bool> p, params IIterable<A>[] iterables)
+        {
+            foreach (var iterable in iterables)
+            {
+                if (!ForAll(iterable, p))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -247,6 +291,39 @@ namespace Runes.Collections
             }
 
             return (leftBuilder.Build(), rightBuilder.Build());
+        }
+
+        public static S Slice<A, C, S>(IIterable<A> iter, IFactory<A, C> subColFactory, IFactory<C, S> factory, int size, int nextStep)
+            where C : IIterable<A, C>
+            where S : IIterable<C, S>
+        {
+            var builder = factory.NewBuilder();
+            var curr = iter;
+            var currStep = nextStep > 0 ? nextStep : 1;
+            while (curr.NonEmpty)
+            {
+                var subCollection = iter.Take(size).To(subColFactory);
+                builder.Append(subCollection);
+                curr = iter.Drops(currStep);
+            }
+
+            return builder.Build();
+        }
+
+        public static S Slice<A, S>(IIterable<A> iter, IFactory<A[], S> factory, int size, int nextStep)
+            where S : IIterable<A[], S>
+        {
+            var builder = factory.NewBuilder();
+            var curr = iter;
+            var currStep = nextStep > 0 ? nextStep : 1;
+            while (curr.NonEmpty)
+            {
+                var subCollection = iter.Take(size).ToMutableArray();
+                builder.Append(subCollection);
+                curr = iter.Drops(currStep);
+            }
+
+            return builder.Build();
         }
 
         public static CC Take<A, CC>(CC iter, Int count, IFactory<A, CC> factory) where CC : IIterable<A, CC>

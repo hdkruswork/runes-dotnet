@@ -20,6 +20,7 @@ namespace Runes.Collections
         new IStream<A> FilterNot(Func<A, bool> p);
         new IStream<A> Prepend(A item);
         new IStream<A> Prepend(IIterable<A> iterable);
+        IStream<IArray<A>> Slice(int size, int nextStep);
         new IStream<A> Take(Int count);
         new IStream<A> TakeWhile(Func<A, bool> p);
         new IStream<A> TakeWhileNot(Func<A, bool> p);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-
-namespace Runes.Collections
+﻿namespace Runes.Collections
 {
     public interface ISet<A> : ICollection<A>
     {

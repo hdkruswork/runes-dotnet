@@ -1,60 +1,66 @@
-﻿using static Runes.Predef;
-
-namespace Runes.Collections.Mutable
+﻿namespace Runes.Collections.Mutable
 {
     public class Queue<A>
     {
         public Queue()
         {
             Head = Rear = new QueueNode(default, null);
+            HeadSyncObj = new object();
+            RearSyncObj = new object();
         }
 
-        public bool IsEmpty => Head.Next == null;
-        public bool NonEmpty => !IsEmpty;
+        public bool IsEmpty => !NonEmpty;
+        public bool NonEmpty => Peek(out _);
 
-        public Option<A> Dequeue()
+        public bool Dequeue(out A value)
         {
-            lock (Head)
+            lock (HeadSyncObj)
             {
-                var res = InnerPeek();
-                if (res.NonEmpty)
+                var firstNode = Head.Next;
+                if (firstNode != null)
                 {
-                    lock(Head.Next)
-                    {
-                        if (Head.Next == Rear)
-                        {
-                            Rear = Head;
-                        }
+                    Head = firstNode.Next;
+                    value = firstNode.Info;
 
-                        Head.Next = Head.Next.Next;
-                    }
+                    return true;
                 }
-
-                return res;
             }
+
+            value = default;
+            return false;
         }
 
         public void Enqueue(A info)
         {
-            lock (Rear)
+            var newNode = new QueueNode(info, null);
+            lock (RearSyncObj)
             {
-                Rear.Next = new QueueNode(info, null);
+                Rear.Next = newNode;
                 Rear = Rear.Next;
             }
         }
 
-        public Option<A> Peek()
+        public bool Peek(out A value)
         {
-            lock (Head)
+            lock (HeadSyncObj)
             {
-                return InnerPeek();
+                if (Head.Next != null)
+                {
+                    value = Head.Next.Info;
+
+                    return true;
+                }
             }
+
+            value = default;
+            return false;
         }
 
-        private QueueNode Head { get; }
+        private QueueNode Head { get; set; }
         private QueueNode Rear { get; set; }
 
-        private Option<A> InnerPeek() => Option(Head.Next).Map(n => n.Info);
+        private object HeadSyncObj { get; }
+        private object RearSyncObj { get; }
 
         private class QueueNode
         {

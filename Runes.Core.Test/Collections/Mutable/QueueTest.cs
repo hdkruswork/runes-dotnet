@@ -11,8 +11,8 @@ namespace Runes.Collections.Mutable.Test
             var queue = new Queue<int>();
             Assert.IsTrue(queue.IsEmpty);
             Assert.IsFalse(queue.NonEmpty);
-            Assert.IsTrue(queue.Peek().IsEmpty);
-            Assert.IsTrue(queue.Dequeue().IsEmpty);
+            Assert.IsFalse(queue.Peek(out _));
+            Assert.IsFalse(queue.Dequeue(out _));
         }
 
         [TestMethod]
@@ -22,8 +22,8 @@ namespace Runes.Collections.Mutable.Test
             queue.Enqueue(10);
             Assert.IsTrue(queue.NonEmpty);
             Assert.IsFalse(queue.IsEmpty);
-            Assert.IsTrue(queue.Peek().NonEmpty);
-            Assert.AreEqual(10, queue.Peek().GetOrElse(0));
+            Assert.IsTrue(queue.Peek(out var first));
+            Assert.AreEqual(10, first);
         }
 
         [TestMethod]
@@ -31,11 +31,11 @@ namespace Runes.Collections.Mutable.Test
         {
             var queue = new Queue<int>();
             queue.Enqueue(10);
-            var opt = queue.Dequeue();
+            queue.Dequeue(out var first);
             Assert.IsTrue(queue.IsEmpty);
             Assert.IsFalse(queue.NonEmpty);
-            Assert.IsTrue(queue.Peek().IsEmpty);
-            Assert.AreEqual(10, opt.GetOrElse(0));
+            Assert.IsFalse(queue.Peek(out _));
+            Assert.AreEqual(10, first);
         }
     }
 }

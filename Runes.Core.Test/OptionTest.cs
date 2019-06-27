@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using static Runes.Options;
+using static Runes.Predef;
 
 namespace Runes.Test
 {
@@ -8,7 +8,7 @@ namespace Runes.Test
     public class OptionTest
     {
         [TestMethod]
-        public void Test_option_type_is_a_monad() => MonadTest.TestMonadType(Option<int>.Builder);
+        public void Test_option_type_is_a_monad() => MonadTest.TestMonadType(Option<int>.Factory);
 
         [TestMethod]
         public void Test_from_null() => Assert.AreEqual(None<string>(), Option<string>(null));

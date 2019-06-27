@@ -19,6 +19,7 @@ namespace Runes.Collections
         new IList<A> Prepend(A item);
         new IList<A> Prepend(IIterable<A> iterable);
         new IList<A> Reverse();
+        IList<IArray<A>> Slice(int size, int nextStep);
         new IList<A> Sort(Ordering<A> ord);
         new IList<A> Take(Int count);
         new IList<A> TakeWhile(Func<A, bool> p);

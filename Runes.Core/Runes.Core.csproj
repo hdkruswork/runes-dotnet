@@ -10,10 +10,4 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Collections.Old\**" />
-    <EmbeddedResource Remove="Collections.Old\**" />
-    <None Remove="Collections.Old\**" />
-  </ItemGroup>
-
 </Project>

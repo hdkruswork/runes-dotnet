@@ -84,6 +84,8 @@ namespace Runes.Collections
 
             public override bool Contains(A item) => CollectionHelper.Contains(this, item);
 
+            public bool Correspond<B>(IIterable<B> other, Func<A, B, bool> f) => CollectionHelper.Correspond(this, other, f);
+
             public IterableSet Drops(Int count) => CollectionHelper.Drops<A, IterableSet>(this, count);
 
             public IterableSet DropsWhile(Func<A, bool> p) => CollectionHelper.DropsWhile(this, p, out _, true);

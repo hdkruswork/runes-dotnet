@@ -5,7 +5,7 @@ using Runes.Math;
 
 namespace Runes.Collections
 {
-    public sealed class Array<A> : ArrayBase<A, Array<A>>
+    public class Array<A> : ArrayBase<A, Array<A>>
     {
         public static readonly ArrayFactory Factory = new ArrayFactory();
 
@@ -33,11 +33,13 @@ namespace Runes.Collections
 
         protected override ArrayBaseFactory GetArrayFactory() => Factory;
 
-        // private members
+        // protected private members
 
-        private Array(A[] array, long startIndex, long length, int step = 1) : base(array, startIndex, length, step)
+        protected private Array(A[] array, long startIndex, long length, int step = 1) : base(array, startIndex, length, step)
         {
         }
+
+        // inner types
 
         public sealed class ArrayFactory : ArrayBaseFactory
         {
@@ -57,8 +59,11 @@ namespace Runes.Collections
                 return this;
             }
 
-            public override Array<A> Build() => 
-                new Array<A>(new A[list.LongCount()], 0, list.LongCount());
+            public override Array<A> Build()
+            {
+                var array = list.ToArray();
+                return new Array<A>(array, 0, array.LongCount());
+            }
 
             public override Array<A> GetEmpty() => Empty;
         }

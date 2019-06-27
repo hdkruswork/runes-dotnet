@@ -29,6 +29,7 @@ namespace Runes
         public bool NonEmpty => GetIfPresent(out _);
 
         public bool Contains(A item) => GetIfPresent(out var value) && value.Equals(item);
+        public bool Correspond<B>(IIterable<B> other, Func<A, B, bool> f) => CollectionHelper.Correspond(this, other, f);
         public MM Drops(Int count) => count == 0 ? This : GetEmpty();
         public MM DropsWhile(Func<A, bool> p) => Exists(p) ? GetEmpty() : This;
         public MM DropsWhileNot(Func<A, bool> p) => ExistsNot(p) ? GetEmpty() : This;

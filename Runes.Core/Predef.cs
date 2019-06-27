@@ -3,6 +3,7 @@ using System;
 using System.Numerics;
 using Runes.Math;
 using Runes.Math.Algorithms;
+using Runes.Collections.Mutable;
 
 namespace Runes
 {
@@ -192,7 +193,7 @@ namespace Runes
                     ? Stream(arr[start], () => GetStream(arr, start + 1))
                     : EmptyStream<A>();
 
-            return GetStream(array, 0);
+            return GetStream(array ?? new A[0], 0);
         }
 
         #endregion
@@ -227,6 +228,8 @@ namespace Runes
                 ? Array(array, 0, array.LongLength, 1)
                 : EmptyArray<A>();
 
+        public static ReadOnlyArray<A> ReadOnlyArray<A>(params A[] array) => new ReadOnlyArray<A>(array ?? new A[0]);
+
         internal static Array<A> Array<A>(A[] array, long startIndex, long length, int step) =>
             Collections.Array<A>.Factory.From(array, startIndex, length, step);
 
@@ -246,7 +249,7 @@ namespace Runes
                 ? head.ToStream().Append(() => stream.Tail.Flatten())
                 : EmptyStream<A>();
 
-        public static Stream<A> Stream<A>(A head) => Stream(head, EmptyStream<A>());
+        public static Stream<A> Stream<A>(params A[] values) => values.ToStream();
         public static Stream<A> Stream<A>(A head, Stream<A> tail) => Collections.Stream<A>.Create(head, () => tail);
         public static Stream<A> Stream<A>(A head, Func<Stream<A>> tailFunc) => Collections.Stream<A>.Create(head, tailFunc);
 

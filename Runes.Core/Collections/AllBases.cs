@@ -44,6 +44,8 @@ namespace Runes.Collections
 
         public override bool Contains(A item) => CollectionHelper.Contains(this, item);
 
+        public virtual bool Correspond<B>(IIterable<B> other, Func<A, B, bool> f) => CollectionHelper.Correspond(this, other, f);
+
         public THIS Drops(Int count) => CollectionHelper.Drops<A, THIS>(This, count);
 
         public THIS DropsWhile(Func<A, bool> p) => DropsWhile(p, out _, true);
