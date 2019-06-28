@@ -5,12 +5,13 @@ VisualStudioVersion = 16.0.28803.452
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core", "Runes.Core\Runes.Core.csproj", "{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core.Test", "Runes.Core.Test\Runes.Core.Test.csproj", "{275908E1-DC80-47F4-96C9-4548BA1A482F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49} = {68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Calc", "Runes.Calc\Runes.Calc.csproj", "{80286A59-9FE0-4545-875C-AED5F9948E29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runes.Calc", "Runes.Calc\Runes.Calc.csproj", "{80286A59-9FE0-4545-875C-AED5F9948E29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runes.Core.Test", "Runes.Core.Test\Runes.Core.Test.csproj", "{96DA9F7B-EC3F-4187-AFCE-8D41598227E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runes.Async", "Runes.Async\Runes.Async.csproj", "{22F004F6-99E7-43E2-98E3-B0321BC69274}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runes.Labs", "Runes.Labs\Runes.Labs.csproj", "{6EE4B1C9-2851-4ECE-BE44-A107E69796C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,14 +23,22 @@ Global
 		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68289FE7-B4ED-4F3A-8DAE-937E0D51CB49}.Release|Any CPU.Build.0 = Release|Any CPU
-		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{275908E1-DC80-47F4-96C9-4548BA1A482F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{80286A59-9FE0-4545-875C-AED5F9948E29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{80286A59-9FE0-4545-875C-AED5F9948E29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80286A59-9FE0-4545-875C-AED5F9948E29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80286A59-9FE0-4545-875C-AED5F9948E29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96DA9F7B-EC3F-4187-AFCE-8D41598227E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96DA9F7B-EC3F-4187-AFCE-8D41598227E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96DA9F7B-EC3F-4187-AFCE-8D41598227E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96DA9F7B-EC3F-4187-AFCE-8D41598227E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22F004F6-99E7-43E2-98E3-B0321BC69274}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22F004F6-99E7-43E2-98E3-B0321BC69274}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22F004F6-99E7-43E2-98E3-B0321BC69274}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22F004F6-99E7-43E2-98E3-B0321BC69274}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EE4B1C9-2851-4ECE-BE44-A107E69796C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EE4B1C9-2851-4ECE-BE44-A107E69796C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EE4B1C9-2851-4ECE-BE44-A107E69796C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EE4B1C9-2851-4ECE-BE44-A107E69796C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
