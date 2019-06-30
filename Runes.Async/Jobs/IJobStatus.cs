@@ -8,6 +8,8 @@
 
     public interface IProgressive : IJobStatus
     {
+        Knowable<long> ETA { get; }
+
         int Progress {  get; }
     }
 

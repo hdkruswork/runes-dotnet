@@ -19,7 +19,7 @@
                 var firstNode = Head.Next;
                 if (firstNode != null)
                 {
-                    Head = firstNode.Next;
+                    Head.Next = firstNode.Next;
                     value = firstNode.Info;
 
                     return true;

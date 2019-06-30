@@ -6,7 +6,7 @@ namespace Runes.Async.Jobs
     {
         string Id { get; }
 
-        Func<object> Task { get; }
+        Func<Action<Knowable<long>, int>, object> Task { get; }
 
         IJobStatus Status { get; set; }
     }

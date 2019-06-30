@@ -4,15 +4,19 @@ namespace Runes.Async.Jobs
 {
     public sealed class Job: Observable<IJobStatus>, IJob
     {
-        public static Job Create(string id, Func<object> task) => Create(id, id, task);
+        public static Job Create(string id, Func<object> task) => Create(id, id, _ => task());
 
-        public static Job Create(string id, string name, Func<object> task) => new Job(id, name, task);
+        public static Job Create(string id, Func<Action<Knowable<long>, int>, object> task) => Create(id, id, task);
+
+        public static Job Create(string id, string name, Func<object> task) => new Job(id, name, _ => task());
+
+        public static Job Create(string id, string name, Func<Action<Knowable<long>, int>, object> task) => new Job(id, name, task);
 
         public string Id { get; }
 
         public string Name { get; }
 
-        public Func<object> Task { get; }
+        public Func<Action<Knowable<long>, int>, object> Task { get; }
 
         public IJobStatus Status
         {
@@ -33,7 +37,7 @@ namespace Runes.Async.Jobs
 
         public override string ToString() => $"Job({(Equals(Id, Name) ? Id : $"{Id} - {Name}")}:{Status})";
 
-        internal Job (string id, string name, Func<object> task)
+        internal Job (string id, string name, Func<Action<Knowable<long>, int>, object> task)
         {
             Id = id;
             Name = name;

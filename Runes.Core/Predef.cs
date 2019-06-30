@@ -47,6 +47,16 @@ namespace Runes
 
         #endregion
 
+        #region Curring
+
+        public static Action<B> Curry<A, B>(this Action<A, B> f, A a) => b => f(a, b);
+        public static Action<B, C> Curry<A, B, C>(this Action<A, B, C> f, A a) => (b, c) => f(a, b, c);
+
+        public static Func<B, R> Curry<A, B, R>(this Func<A, B, R> f, A a) => b => f(a, b);
+        public static Func<B, C, R> Curry<A, B, C, R>(this Func<A, B, C, R> f, A a) => (b, c) => f(a, b, c);
+
+        #endregion
+
         #region Option
 
         public static Option<A> Flatten<A>(this Option<Option<A>> option) => option.GetOrElse(None<A>());

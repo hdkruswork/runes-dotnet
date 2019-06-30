@@ -1,4 +1,6 @@
-﻿namespace Runes.Async.Jobs
+﻿using static Runes.Predef;
+
+namespace Runes.Async.Jobs
 {
     public abstract class Unresolved : IUnresolved
     {
@@ -12,6 +14,8 @@
     public sealed class ReadyToRun : Unresolved, IReadyToRun
     {
         public static readonly ReadyToRun Value = new ReadyToRun();
+
+        public Knowable<long> ETA => Unknown<long>();
 
         public int Progress => 0;
 
@@ -35,7 +39,13 @@
 
     public class RunningWithProgress : Running, IProgressive
     {
+        public static RunningWithProgress Create(Knowable<long> eta, int progress) => new RunningWithProgress(eta, progress);
+
+        public static RunningWithProgress Create(long eta, int progress) => new RunningWithProgress(eta, progress);
+
         public static RunningWithProgress Create(int progress) => new RunningWithProgress(progress);
+
+        public Knowable<long> ETA { get; }
 
         public int Progress { get; }
 
@@ -49,12 +59,24 @@
 
         public override string ToString() => $"Running({Progress}%)";
 
-        internal RunningWithProgress(int progress) => Progress = progress;
+        internal RunningWithProgress(long eta, int progress) : this(Known(eta), progress) { }
+
+        internal RunningWithProgress(int progress) : this(Unknown<long>(), progress) { }
+
+        // private members
+
+        private RunningWithProgress(Knowable<long> eta, int progress)
+        {
+            ETA = eta;
+            Progress = progress;
+        }
     }
 
     public class Done : IDone
     {
         public static readonly Done Value = new Done();
+
+        public Knowable<long> ETA => Known(0L);
 
         public int Progress => 100;
 

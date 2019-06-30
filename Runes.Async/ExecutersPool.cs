@@ -35,20 +35,42 @@ namespace Runes.Async
         public string Execute(Func<object> task) =>
             Execute(task, null);
 
+        public string Execute(Func<Action<Knowable<long>, int>, object> task) =>
+            Execute(task, null);
+
         public string Execute(string id, Func<object> task) =>
+            Execute(id, task, null);
+
+        public string Execute(string id, Func<Action<Knowable<long>, int>, object> task) =>
             Execute(id, task, null);
 
         public string Execute(string id, string name, Func<object> task) =>
             Execute(id, name, task, null);
 
+        public string Execute(string id, string name, Func<Action<Knowable<long>, int>, object> task) =>
+            Execute(id, name, task, null);
+
         public string Execute(Func<object> task, Action<IJobStatus> statusChangeCallback) =>
+            Execute(Guid.NewGuid().ToString(), task, statusChangeCallback);
+
+        public string Execute(Func<Action<Knowable<long>, int>, object> task, Action<IJobStatus> statusChangeCallback) =>
             Execute(Guid.NewGuid().ToString(), task, statusChangeCallback);
 
         public string Execute(string id, Func<object> task, Action<IJobStatus> statusChangeCallback) =>
             Execute(id, id, task, statusChangeCallback);
 
-        public string Execute(string id, string name, Func<object> task, Action<IJobStatus> statusChangeCallback)
-        {
+        public string Execute(string id, Func<Action<Knowable<long>, int>, object> task, Action<IJobStatus> statusChangeCallback) =>
+            Execute(id, id, task, statusChangeCallback);
+
+        public string Execute(string id, string name, Func<object> task, Action<IJobStatus> statusChangeCallback) =>
+            Execute(id, name, _ => task(), statusChangeCallback);
+
+        public string Execute(
+            string id,
+            string name,
+            Func<Action<Knowable<long>, int>, object> task,
+            Action<IJobStatus> statusChangeCallback
+        ) {
             var job = Job.Create(id, name, task);
 
             if (statusChangeCallback != null)
@@ -94,8 +116,10 @@ namespace Runes.Async
                     {
                         if (job.Status == ReadyToRun.Value)
                         {
+                            job.Status = Running.Value;
                             runningJobs[slot] = job;
-                            var result = Try(() => job.Task());
+
+                            var result = Try(() => job.Task((eta, progress) => job.Status = RunningWithProgress.Create(eta, progress)));
                             if (result.GetIfSuccess(out var res))
                             {
                                 job.Status = DoneWithResult.Create(res);

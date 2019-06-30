@@ -3,18 +3,22 @@ using Runes.Async.Jobs;
 using Runes.Security.Cryptography;
 using Runes.Text;
 using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
+
+using static Runes.Predef;
 
 namespace Runes.Labs
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            LoadAssemblies();
+            //LoadAssemblies();
+            //
+            //var executorPool = AppDomain
+            //    .CurrentDomain
+            //    .CreateInstance("Runes.Async", "Runes.Async.ExecutersPool")
+            //    .Unwrap();
 
             var hexDecoder = HexDecoder.Object;
             var sha256 = Sha256Algorithm.Object;
@@ -27,55 +31,72 @@ namespace Runes.Labs
             var secondTaskName = "2nd Task";
             var secondTaskId = hexDecoder.Decode(sha256.Compute(secondTaskName, Encoding.UTF8));
 
-            var executorPool = AppDomain
-                .CurrentDomain
-                .CreateInstance("Runes.Async", "Runes.Async.ExecutersPool")
-                .Unwrap();
+            Console.WriteLine($"Curr dir: {AppDomain.CurrentDomain.BaseDirectory}");
 
-            //Console.WriteLine($"Pool size: {executorPool.PoolSize}");
+            var executorPool = new ExecutersPool();
 
-            //var consoleSyncObj = new object();
-            //void UpdateSatus(string id, IJobStatus status)
-            //{
-            //    lock (consoleSyncObj)
-            //    {
-            //        Console.WriteLine($"Job: {id} : {status}");
-            //    }
-            //}
+            Console.WriteLine($"Pool size: {executorPool.PoolSize}");
 
-            //executorPool.Execute(
-            //    firstTaskId,
-            //    firstTaskName,
-            //    () => {
-            //        System.Threading.Thread.Sleep(5000);
-            //        return 120;
-            //    },
-            //    status => UpdateSatus(firstTaskName, status)
-            //);
+            var consoleSyncObj = new object();
+            Action<string, IJobStatus> updateStatus = (id, status) =>
+            {
+                lock (consoleSyncObj)
+                {
+                    switch (status)
+                    {
+                        case DoneWithResult done:
+                            Console.WriteLine($"Job: {id} - Done with result: {done.Result}");
+                            break;
 
-            //executorPool.Execute(
-            //    secondTaskId,
-            //    secondTaskName,
-            //    () => {
-            //        System.Threading.Thread.Sleep(4000);
-            //        return 480;
-            //    },
-            //    status => UpdateSatus(secondTaskName, status)
-            //);
+                        case RunningWithProgress progress:
+                            Console.WriteLine($"Job: {id} - Running: {progress.Progress}% {progress.ETA.ToOption().Map(eta => $"ETA {eta}s").GetOrElse("")}");
+                            break;
 
-            //executorPool.WaitForAll();
+                        default:
+                            Console.WriteLine($"Job: {id} : {status}");
+                            break;
+                    }
+                }
+            };
+
+            executorPool.Execute(
+                firstTaskId,
+                firstTaskName,
+                update => {
+                    System.Threading.Thread.Sleep(500);
+                    update(Known(1000L), 33);
+                    System.Threading.Thread.Sleep(500);
+                    update(Known(500L), 66);
+                    System.Threading.Thread.Sleep(500);
+
+                    return 120;
+                },
+                updateStatus.Curry(firstTaskName)
+            );
+
+            executorPool.Execute(
+                secondTaskId,
+                secondTaskName,
+                update => {
+                    System.Threading.Thread.Sleep(750);
+                    return 480;
+                },
+                updateStatus.Curry(secondTaskName)
+            );
+
+            executorPool.WaitForAll();
         }
 
-        private static void LoadAssemblies()
-        {
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
+        //private static void LoadAssemblies()
+        //{
+        //    var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+        //    var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
 
-            var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
-            var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
-            toLoad.ForEach(path => {
-                loadedAssemblies.Add(Assembly.LoadFrom(path));
-            });
-        }
+        //    var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
+        //    var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
+        //    toLoad.ForEach(path => {
+        //        loadedAssemblies.Add(Assembly.LoadFrom(path));
+        //    });
+        //}
     }
 }
