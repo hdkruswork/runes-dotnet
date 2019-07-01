@@ -25,12 +25,6 @@ namespace Runes.Collections
         protected THIS This => (THIS)this;
 
         protected abstract THIS Filter(Func<A, bool> p, bool isAffirmative);
-
-        // private members
-
-        ICollection<A> ICollection<A>.Filter(Func<A, bool> p) => Filter(p);
-
-        ICollection<A> ICollection<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
     }
 
     public abstract class IterableBase<A, THIS> : CollectionBase<A, THIS>, IIterable<A, THIS>
@@ -96,6 +90,8 @@ namespace Runes.Collections
 
         public Stream<A> ToStream() => CollectionHelper.ToStream(this);
 
+        // inner types
+
         public abstract class Builder<BB> : IIterableBuilder<A, THIS, BB> where BB : Builder<BB>
         {
             public abstract BB Append(A item);
@@ -103,21 +99,12 @@ namespace Runes.Collections
             public abstract THIS Build();
 
             public abstract THIS GetEmpty();
-
-            // private members
-
-            IIterableBuilder<A, THIS> IIterableBuilder<A, THIS>.Append(A item) => Append(item);
-
-            IIterableBuilder<A> IIterableBuilder<A>.Append(A item) => Append(item);
-
-            IIterable<A> IIterableBuilder<A>.GetEmpty() => GetEmpty();
-
-            IIterable<A> IBuilder<IIterable<A>>.Build() => Build();
         }
 
         // protected members
 
-        protected That As<B, That>(IFactory<B, That> factory) where That : IIterable<B> => CollectionHelper.As(this, factory);
+        protected That As<B, That>(IFactory<B, That> factory) where That : IIterable<B> =>
+            CollectionHelper.As(this, factory);
 
         protected That Collect<B, That>(Func<A, Option<B>> f, IFactory<B, That> factory) where That : IIterable<B> =>
             CollectionHelper.Collect(this, f, factory);
@@ -154,37 +141,13 @@ namespace Runes.Collections
 
         IIterable<A> IIterable<A>.Tail => Tail;
 
-        IIterable<B> IIterable<A>.As<B>() => As(GetFactory<B>());
+        IIterable<B> IIterable.As<B>() => As(GetFactory<B>());
 
         IIterable<B> IIterable<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f, GetFactory<B>());
 
-        IIterable<A> IIterable<A>.Drops(Int count) => Drops(count);
-
-        IIterable<A> IIterable<A>.DropsWhile(Func<A, bool> p) => DropsWhile(p);
-
-        IIterable<A> IIterable<A>.DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p);
-
-        IIterable<A> IIterable<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
-
-        IIterable<A> IIterable<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
-
-        IIterable<A> IIterable<A>.Filter(Func<A, bool> p) => Filter(p);
-
-        IIterable<A> IIterable<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
-
         IIterable<B> IIterable<A>.FlatMap<B>(Func<A, IIterable<B>> f) => FlatMap(f, GetFactory<B>());
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         IIterable<B> IIterable<A>.Map<B>(Func<A, B> f) => Map(f, GetFactory<B>());
-
-        (IIterable<A>, IIterable<A>) IIterable<A>.Partition(Func<A, bool> p) => Partition(p);
-
-        IIterable<A> IIterable<A>.Take(Int count) => Take(count);
-
-        IIterable<A> IIterable<A>.TakeWhile(Func<A, bool> p) => TakeWhile(p);
-
-        IIterable<A> IIterable<A>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
 
         (IIterable<X>, IIterable<Y>) IIterable<A>.Unzip<X, Y>(Func<A, (X, Y)> f) =>
             Unzip(f, GetFactory<X>(), GetFactory<Y>());
@@ -225,19 +188,16 @@ namespace Runes.Collections
         public override THIS Reverse() => 
             FoldLeft(GetFactory().NewBuilder().Build(), (agg, it) => agg.Prepend(it));
 
-        // private members
-
-        IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
-
-        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
-
-        IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
-
-        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
+        // explicit members
 
         IGrowable<A> ICollection<A, IGrowable<A>>.Filter(Func<A, bool> p) => Filter(p);
-
         IGrowable<A> ICollection<A, IGrowable<A>>.FilterNot(Func<A, bool> p) => FilterNot(p);
+
+        ICollection<A> ICollection<A>.Filter(Func<A, bool> p) => Filter(p);
+        ICollection<A> ICollection<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+
+        ICollection ICollection.Filter(Func<object, bool> p) => Filter((A a) => p(a));
+        ICollection ICollection.FilterNot(Func<object, bool> p) => FilterNot((A a) => p(a));
     }
 
     public abstract class ArrayBase<A, THIS> : EagerIterableBase<A, THIS>, IArray<A, THIS>

@@ -9,11 +9,26 @@ namespace Runes
 {
     public interface IMonad<A> : IIterable<A>
     {
+        new IMonad<B> As<B>();
+        new IMonad<A> Filter(Func<A, bool> p);
+        new IMonad<A> FilterNot(Func<A, bool> p);
         IMonad<B> FlatMap<B>(Func<A, IMonad<B>> f);
         bool GetIfPresent(out A value);
         A GetOrElse(A alternative);
         A GetOrElse(Func<A> alternative);
+        new IMonad<B> Map<B>(Func<A, B> f);
         IMonad<A> OrElse(IMonad<A> alternative);
+        new (IMonad<A>, IMonad<A>) Partition(Func<A, bool> p);
+
+        // explicit members
+
+        IIterable<A> IIterable<A>.Filter(Func<A, bool> p) => Filter(p);
+        IIterable<A> IIterable<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        IIterable<B> IIterable<A>.FlatMap<B>(Func<A, IIterable<B>> f) => FlatMap(a => (IMonad<B>)f(a));
+        IIterable<B> IIterable<A>.Map<B>(Func<A, B> f) => Map(f);
+        (IIterable<A>, IIterable<A>) IIterable<A>.Partition(Func<A, bool> p) => Partition(p);
+
+        IIterable<B> IIterable.As<B>() => As<B>();
     }
 
     public interface IMonad<A, MM> : IMonad<A> where MM : IMonad<A, MM>
@@ -21,6 +36,13 @@ namespace Runes
         new MM Filter(Func<A, bool> p);
         new MM FilterNot(Func<A, bool> p);
         MM OrElse(MM alternative);
+        new (MM, MM) Partition(Func<A, bool> p);
+
+        // explicit members
+
+        IMonad<A> IMonad<A>.Filter(Func<A, bool> p) => Filter(p);
+        IMonad<A> IMonad<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        (IMonad<A>, IMonad<A>) IMonad<A>.Partition(Func<A, bool> p) => Partition(p);
     }
 
     public abstract class MonadBase<A, MM> : IMonad<A, MM> where MM : MonadBase<A, MM>
@@ -218,23 +240,19 @@ namespace Runes
             protected MB This => (MB) this;
 
             IIterableBuilder<A, MM> IIterableBuilder<A, MM>.Append(A item) => Append(item);
-
-            IIterableBuilder<A> IIterableBuilder<A>.Append(A item) => Append(item);
-
-            IIterable<A> IBuilder<IIterable<A>>.Build() => Build();
-
-            IIterable<A> IIterableBuilder<A>.GetEmpty() => GetEmpty();
         }
 
         // private members
+
+        IMonad<B> IMonad<A>.As<B>() => As(GetFactory<B>());
+
+        IMonad<B> IMonad<A>.Map<B>(Func<A, B> f) => Map(f, GetFactory<B>());
 
         IMonad<A> IMonad<A>.OrElse(IMonad<A> alternative) => OrElse(GetFactory().From(alternative));
 
         Option<A> IIterable<A>.HeadOption => Option<A>.Factory.From(This);
 
         IIterable<A> IIterable<A>.Tail => GetFactory().NewBuilder().GetEmpty();
-
-        IIterable<B> IIterable<A>.As<B>() => As(GetFactory<B>());
 
         IIterable<B> IIterable<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f, GetFactory<B>());
 

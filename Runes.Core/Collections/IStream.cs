@@ -27,6 +27,29 @@ namespace Runes.Collections
         new (IStream<X>, IStream<Y>) Unzip<X, Y>(Func<A, (X, Y)> f);
         new IStream<(A, B)> Zip<B>(IIterable<B> other);
         new IStream<(A, Int)> ZipWithIndex();
+
+        // explicit definitions
+
+        IIndexable<A> IIndexable<A>.Tail => Tail;
+
+        IIterable<B> IIterable<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
+
+        bool IGrowable<A>.Accepts(A item) => true;
+        IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
+        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
+        IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
+        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
+
+        IGrowable<A> ICollection<A, IGrowable<A>>.Filter(Func<A, bool> p) => Filter(p);
+        IGrowable<A> ICollection<A, IGrowable<A>>.FilterNot(Func<A, bool> p) => FilterNot(p);
+
+        ICollection<A> ICollection<A>.Filter(Func<A, bool> p) => Filter(p);
+        ICollection<A> ICollection<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+
+        ICollection ICollection.Filter(Func<object, bool> p) => Filter((A a) => p(a));
+        ICollection ICollection.FilterNot(Func<object, bool> p) => FilterNot((A a) => p(a));
+
+        IIndexable<(A, Int)> IIndexable<A>.ZipWithIndex() => ZipWithIndex();
     }
 
     public interface IStream<A, CC> : IStream<A> where CC : IStream<A, CC>
@@ -48,5 +71,25 @@ namespace Runes.Collections
         new CC Take(Int count);
         new CC TakeWhile(Func<A, bool> p);
         new CC TakeWhileNot(Func<A, bool> p);
+
+        // explicit definitions
+
+        IStream<A> IStream<A>.Tail => Tail;
+
+        IStream<A> IStream<A>.Append(A item) => Append(item);
+        IStream<A> IStream<A>.Append(IIterable<A> iterable) => Append(iterable);
+        IStream<A> IStream<A>.Append(Func<IStream<A>> streamFunc) => Append(() => (CC) streamFunc());
+        IStream<A> IStream<A>.Drops(Int count) => Drops(count);
+        IStream<A> IStream<A>.DropsWhile(Func<A, bool> p) => DropsWhile(p);
+        IStream<A> IStream<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
+        IStream<A> IStream<A>.DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p);
+        IStream<A> IStream<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
+        IStream<A> IStream<A>.Filter(Func<A, bool> p) => Filter(p);
+        IStream<A> IStream<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        IStream<A> IStream<A>.Prepend(A item) => Prepend(item);
+        IStream<A> IStream<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
+        IStream<A> IStream<A>.Take(Int count) => Take(count);
+        IStream<A> IStream<A>.TakeWhile(Func<A, bool> p) => TakeWhile(p);
+        IStream<A> IStream<A>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
     }
 }

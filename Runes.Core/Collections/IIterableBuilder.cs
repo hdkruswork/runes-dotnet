@@ -1,19 +1,12 @@
 ﻿namespace Runes.Collections
 {
-    public interface IIterableBuilder<A> : IBuilder<IIterable<A>>
+    public interface IIterableBuilder<A, out CC> : IBuilder<CC> where CC : IIterable<A>
     {
-        IIterableBuilder<A> Append(A item);
-
-        IIterable<A> GetEmpty();
-    }
-
-    public interface IIterableBuilder<A, out CC> : IIterableBuilder<A> where CC : IIterable<A>
-    {
-        new IIterableBuilder<A, CC> Append(A item);
+        IIterableBuilder<A, CC> Append(A item);
 
         new CC Build();
 
-        new CC GetEmpty();
+        CC GetEmpty();
     }
 
     public interface IIterableBuilder<A, out CC, out BB> : IIterableBuilder<A, CC>
@@ -21,5 +14,7 @@
         where BB : IIterableBuilder<A, CC, BB>
     {
         new BB Append(A item);
+
+        IIterableBuilder<A, CC> IIterableBuilder<A, CC>.Append(A item) => Append(item);
     }
 }

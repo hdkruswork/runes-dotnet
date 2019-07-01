@@ -47,7 +47,7 @@ namespace Runes
 
         #endregion
 
-        #region Curring
+        #region Functions
 
         public static Action<B> Curry<A, B>(this Action<A, B> f, A a) => b => f(a, b);
         public static Action<B, C> Curry<A, B, C>(this Action<A, B, C> f, A a) => (b, c) => f(a, b, c);
@@ -230,6 +230,15 @@ namespace Runes
         #endregion
 
         #region Arrays
+
+        public static B[] CastItems<A, B>(this A[] array)
+        {
+            var res = new B[array.LongLength];
+
+            System.Array.Copy(array, res, array.LongLength);
+
+            return res;
+        }
 
         public static Array<A> EmptyArray<A>() => Collections.Array<A>.Empty;
 

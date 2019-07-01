@@ -25,6 +25,12 @@ namespace Runes.Collections
         new IList<A> TakeWhile(Func<A, bool> p);
         new IList<A> TakeWhileNot(Func<A, bool> p);
         new IList<(A, Int)> ZipWithIndex();
+
+        // explicit definitions
+
+        IIndexable<A> IIndexable<A>.Tail => Tail;
+
+        IIndexable<(A, Int)> IIndexable<A>.ZipWithIndex() => ZipWithIndex();
     }
 
     public interface IList<A, out CC> : IList<A> where CC : IList<A, CC>
@@ -47,5 +53,26 @@ namespace Runes.Collections
         new CC Take(Int count);
         new CC TakeWhile(Func<A, bool> p);
         new CC TakeWhileNot(Func<A, bool> p);
+
+        // explicit definitions
+
+        IList<A> IList<A>.Tail => Tail;
+
+        IList<A> IList<A>.Append(A item) => Append(item);
+        IList<A> IList<A>.Append(IIterable<A> iterable) => Append(iterable);
+        IList<A> IList<A>.Drops(Int count) => Drops(count);
+        IList<A> IList<A>.DropsWhile(Func<A, bool> p) => DropsWhile(p);
+        IList<A> IList<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
+        IList<A> IList<A>.DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p);
+        IList<A> IList<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
+        IList<A> IList<A>.Filter(Func<A, bool> p) => Filter(p);
+        IList<A> IList<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        IList<A> IList<A>.Prepend(A item) => Prepend(item);
+        IList<A> IList<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
+        IList<A> IList<A>.Reverse() => Reverse();
+        IList<A> IList<A>.Sort(Ordering<A> ord) => Sort(ord);
+        IList<A> IList<A>.Take(Int count) => Take(count);
+        IList<A> IList<A>.TakeWhile(Func<A, bool> p) => TakeWhile(p);
+        IList<A> IList<A>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
     }
 }

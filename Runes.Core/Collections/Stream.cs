@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Runes.Math;
+
 using static Runes.Predef;
 
 namespace Runes.Collections
@@ -133,65 +134,28 @@ namespace Runes.Collections
 
         private protected Stream() { }
 
-        IStream<A> IStream<A>.Tail => Tail;
-
-        IIndexable<A> IIndexable<A>.Tail => Tail;
-
-        IStream<A> IStream<A>.Append(Func<IStream<A>> streamFunc) => Append(() => (Stream<A>)streamFunc());
+        // explicit members
 
         IStream<B> IStream<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
-
+        IStream<A> IStream<A>.Filter(Func<A, bool> p) => Filter(p);
+        IStream<A> IStream<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+        IStream<IArray<A>> IStream<A>.Slice(int size, int nextStep) => Slice(size, nextStep).As<IArray<A>>();
         (IStream<X>, IStream<Y>) IStream<A>.Unzip<X, Y>(Func<A, (X, Y)> f) => Unzip(f);
-
         IStream<(A, B)> IStream<A>.Zip<B>(IIterable<B> other) => Zip(other);
-
         IStream<(A, Int)> IStream<A>.ZipWithIndex() => ZipWithIndex();
 
-        bool IGrowable<A>.Accepts(A item) => true;
-
-        IStream<A> IStream<A>.Append(IIterable<A> iterable) => Append(iterable);
-
-        IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
-
-        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
-
-        IStream<A> IStream<A>.Append(A item) => Append(item);
-
-        IStream<A> IStream<A>.Drops(Int count) => Drops(count);
-
-        IStream<A> IStream<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
-
-        IStream<A> IStream<A>.DropsWhile(Func<A, bool> p) => DropsWhile(p);
-
-        IStream<A> IStream<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
-
-        IStream<A> IStream<A>.DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p);
-
-        IStream<A> IStream<A>.Filter(Func<A, bool> p) => Filter(p);
-
         IGrowable<A> ICollection<A, IGrowable<A>>.Filter(Func<A, bool> p) => Filter(p);
-
         IGrowable<A> ICollection<A, IGrowable<A>>.FilterNot(Func<A, bool> p) => FilterNot(p);
 
-        IStream<A> IStream<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
-
-        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
-
-        IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
-
-        IStream<A> IStream<A>.Prepend(A item) => Prepend(item);
-
-        IStream<A> IStream<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
-
-        IStream<IArray<A>> IStream<A>.Slice(int size, int nextStep) => Slice(size, nextStep).As<IArray<A>>();
-
-        IStream<A> IStream<A>.Take(Int count) => Take(count);
-
-        IStream<A> IStream<A>.TakeWhile(Func<A, bool> p) => TakeWhile(p);
-
-        IStream<A> IStream<A>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
-
         IIndexable<(A, Int)> IIndexable<A>.ZipWithIndex() => ZipWithIndex();
+
+        ICollection<A> ICollection<A>.Filter(Func<A, bool> p) => Filter(p);
+        ICollection<A> ICollection<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
+
+        ICollection ICollection.Filter(Func<object, bool> p) => Filter((A a) => p(a));
+        ICollection ICollection.FilterNot(Func<object, bool> p) => FilterNot((A a) => p(a));
+
+        // inner types
 
         private sealed class NonEmptyStream : Stream<A>
         {

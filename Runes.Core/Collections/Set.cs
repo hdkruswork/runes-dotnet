@@ -35,7 +35,7 @@ namespace Runes.Collections
         protected virtual Set<A> Filter(Func<A, bool> p, bool isAffirmative) =>
             Create(a => p(a) == isAffirmative);
 
-        // private members
+        // explicit members
 
         ISet<A> ISet<A>.Difference(ISet<A> other) => Difference(Create(other.Contains));
 
@@ -47,7 +47,7 @@ namespace Runes.Collections
 
         ISet<A> ISet<A>.Union(ISet<A> other) => Union(Create(other.Contains));
 
-        #region Set Sub Types
+        // inner types
 
         private sealed class LogicSet : Set<A>
         {
@@ -163,6 +163,8 @@ namespace Runes.Collections
 
             private IFactory<B, Set<B>.IterableSet> GetFactory<B>() => Set<B>.IterableSet.Factory;
 
+            // explicit members
+
             IterableSet IIterable<A, IterableSet>.Tail => Tail;
 
             Option<A> IIterable<A>.HeadOption => HeadOption;
@@ -179,6 +181,10 @@ namespace Runes.Collections
 
             IterableSet IIterable<A, IterableSet>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
 
+            IterableSet IIterable<A, IterableSet>.Filter(Func<A, bool> p) => (IterableSet)Filter(p);
+
+            IterableSet IIterable<A, IterableSet>.FilterNot(Func<A, bool> p) => (IterableSet)FilterNot(p);
+
             (IterableSet, IterableSet) IIterable<A, IterableSet>.Partition(Func<A, bool> p) => Partition(p);
 
             IterableSet IIterable<A, IterableSet>.Take(Int count) => Take(count);
@@ -187,7 +193,7 @@ namespace Runes.Collections
 
             IterableSet IIterable<A, IterableSet>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
 
-            IIterable<B> IIterable<A>.As<B>() => As<B>();
+            IIterable<B> IIterable.As<B>() => As<B>();
 
             IIterable<B> IIterable<A>.Collect<B>(Func<A, Option<B>> f) => Collect(f);
 
@@ -260,14 +266,6 @@ namespace Runes.Collections
                 public IterableSet Build() => list.FoldLeft(Empty, (set, it) => Create(it, set));
 
                 public IterableSet GetEmpty() => Empty;
-
-                IIterableBuilder<A, IterableSet> IIterableBuilder<A, IterableSet>.Append(A item) => Append(item);
-
-                IIterableBuilder<A> IIterableBuilder<A>.Append(A item) => Append(item);
-
-                IIterable<A> IBuilder<IIterable<A>>.Build() => Build();
-
-                IIterable<A> IIterableBuilder<A>.GetEmpty() => GetEmpty();
             }
 
             private sealed class IterableSetFactory : IFactory<A, IterableSet>
@@ -325,7 +323,5 @@ namespace Runes.Collections
 
             protected override Set<A> Filter(Func<A, bool> p, bool isAffirmative) => this;
         }
-
-        #endregion
     }
 }

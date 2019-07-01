@@ -53,61 +53,13 @@ namespace Runes.Collections
 
         protected override IFactory<A, List<A>> GetFactory() => Factory;
 
-        // private members
-
-        IList<A> IList<A>.Tail => Tail;
-
-        IIndexable<A> IIndexable<A>.Tail => Tail;
-
-        IList<A> IList<A>.Append(A item) => Append(item);
-
-        IList<A> IList<A>.Append(IIterable<A> iterable) => Append(iterable);
-
-        IList<A> IList<A>.Drops(Int count) => Drops(count);
-
-        IList<A> IList<A>.DropsWhile(Func<A, bool> p) => DropsWhile(p);
-
-        IList<A> IList<A>.DropsWhile(Func<A, bool> p, out Int dropped) => DropsWhile(p, out dropped);
-
-        IList<A> IList<A>.DropsWhileNot(Func<A, bool> p) => DropsWhileNot(p);
-
-        IList<A> IList<A>.DropsWhileNot(Func<A, bool> p, out Int dropped) => DropsWhileNot(p, out dropped);
-
-        IList<A> IList<A>.Filter(Func<A, bool> p) => Filter(p);
-
-        IList<A> IList<A>.FilterNot(Func<A, bool> p) => FilterNot(p);
-
-        IList<A> IList<A>.Prepend(A item) => Prepend(item);
-
-        IList<A> IList<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
-
-        IList<A> IList<A>.Reverse() => Reverse();
+        // explicit definitions
 
         IList<IArray<A>> IList<A>.Slice(int size, int nextStep) => Slice(size, nextStep).As<IArray<A>>();
 
-        IList<A> IList<A>.Sort(Ordering<A> ord) => Sort(ord);
-
-        IList<A> IList<A>.Take(Int count) => Take(count);
-
-        IList<A> IList<A>.TakeWhile(Func<A, bool> p) => TakeWhile(p);
-
-        IList<A> IList<A>.TakeWhileNot(Func<A, bool> p) => TakeWhileNot(p);
-
         IList<(A, Int)> IList<A>.ZipWithIndex() => ZipWithIndex();
 
-        IGrowable<A> IGrowable<A>.Append(A item) => Append(item);
-
-        IGrowable<A> IGrowable<A>.Append(IIterable<A> iterable) => Append(iterable);
-
-        IGrowable<A> ICollection<A, IGrowable<A>>.Filter(Func<A, bool> p) => Filter(p);
-
-        IGrowable<A> ICollection<A, IGrowable<A>>.FilterNot(Func<A, bool> p) => FilterNot(p);
-
-        IGrowable<A> IGrowable<A>.Prepend(A item) => Prepend(item);
-
-        IGrowable<A> IGrowable<A>.Prepend(IIterable<A> iterable) => Prepend(iterable);
-
-        IIndexable<(A, Int)> IIndexable<A>.ZipWithIndex() => ZipWithIndex();
+        // inner types
 
         private sealed class NonEmptyList : List<A>
         {
