@@ -3,47 +3,47 @@ using System.Globalization;
 using System.Numerics;
 using System.Text;
 
-using static Runes.Math.Predef;
 using static Runes.Predef;
 
 namespace Runes.Math
 {
-    public class Rational
-        : Scalar<Rational>, IEquatable<Int>
+    public class Rational : Scalar<Rational>, IEquatable<Int>
     {
         // Static members
 
         private const string m_solidus = @"/";
 
-        public static readonly Rational MinusOne = Rational(Int.MinusOne);
+        public static readonly Rational MinusOne = Create(Int.MinusOne);
 
-        public static readonly Rational One = Rational(Int.One);
+        public static readonly Rational One = Create(Int.One);
 
-        public static readonly Rational Zero = Rational(Int.Zero);
+        public static readonly Rational Zero = Create(Int.Zero);
 
-        public static implicit operator Rational(byte num) => Rational((BigInteger)num);
+        public static implicit operator Rational(byte num) => Create(num);
 
-        public static implicit operator Rational(sbyte num) => Rational((BigInteger)num);
+        public static implicit operator Rational(sbyte num) => Create(num);
 
-        public static implicit operator Rational(short num) => Rational((BigInteger)num);
+        public static implicit operator Rational(short num) => Create(num);
 
-        public static implicit operator Rational(ushort num) => Rational((BigInteger)num);
+        public static implicit operator Rational(ushort num) => Create(num);
 
-        public static implicit operator Rational(int num) => Rational((BigInteger)num);
+        public static implicit operator Rational(int num) => Create(num);
 
-        public static implicit operator Rational(long num) => Rational((BigInteger)num);
+        public static implicit operator Rational(long num) => Create(num);
 
-        public static implicit operator Rational(uint num) => Rational((BigInteger)num);
+        public static implicit operator Rational(uint num) => Create(num);
 
-        public static implicit operator Rational(ulong num) => Rational((BigInteger)num);
+        public static implicit operator Rational(ulong num) => Create(num);
 
-        public static implicit operator Rational(BigInteger num) => Rational(num);
+        public static implicit operator Rational(BigInteger num) => Create(num);
 
-        public static implicit operator Rational(Int num) => Rational(num);
+        public static implicit operator Rational(Int num) => Create(num);
 
-        public static implicit operator Rational(float num) => Rational(num);
+        public static implicit operator Rational(float num) => From(num);
 
-        public static implicit operator Rational(double num) => Rational(num);
+        public static implicit operator Rational(double num) => From(num);
+
+        public static implicit operator Rational(decimal num) => From((double)num);
 
         public static bool operator ==(Rational r1, Rational r2) => Compare(r1, r2) == 0;
 
@@ -59,30 +59,30 @@ namespace Runes.Math
 
         public static Rational operator +(Rational r) => r;
 
-        public static Rational operator -(Rational r) => Rational(-r.Numerator, r.Denominator);
+        public static Rational operator -(Rational r) => Create(-r.Numerator, r.Denominator, r.IsSimplified);
 
         public static Rational operator ++(Rational r) => r + One;
 
         public static Rational operator --(Rational r) => r - One;
 
         public static Rational operator +(Rational a, Rational b) => // a/b + c/d = (ad + bc)/bd
-            Rational(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator)
+            Create(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator)
                 .Simplify();
 
         public static Rational operator -(Rational a, Rational b) =>  // a/b - c/d = (ad - bc)/bd
-            Rational(a.Numerator * b.Denominator - b.Numerator * a.Denominator, a.Denominator * b.Denominator)
+            Create(a.Numerator * b.Denominator - b.Numerator * a.Denominator, a.Denominator * b.Denominator)
                 .Simplify();
 
         public static Rational operator *(Rational a, Rational b) => // a/b * c/d = ac/bd
-            Rational(a.Numerator * b.Numerator, a.Denominator * b.Denominator)
+            Create(a.Numerator * b.Numerator, a.Denominator * b.Denominator)
                 .Simplify();
 
         public static Rational operator /(Rational a, Rational b) => // a/b / c/d = ad/bc
-            Rational(a.Numerator * b.Denominator, a.Denominator * b.Numerator)
+            Create(a.Numerator * b.Denominator, a.Denominator * b.Numerator)
                 .Simplify();
 
         public static Rational operator %(Rational a, Rational b) => // a/b % c/d = (ad % bc)/bd
-            Rational((a.Numerator * b.Denominator) % (b.Numerator * a.Denominator), a.Denominator * b.Denominator);
+            Create((a.Numerator * b.Denominator) % (b.Numerator * a.Denominator), a.Denominator * b.Denominator);
 
         public static Rational Abs(Rational r) => r.Sign < 0 ? -r : r;
 
@@ -93,13 +93,13 @@ namespace Runes.Math
         {
             if (BigInteger.TryParse(str, out BigInteger bigInt))
             {
-                number = Rational(bigInt);
+                number = Create(bigInt);
                 return true;
             }
 
             if (double.TryParse(str, out double doubleValue))
             {
-                number = Rational(doubleValue);
+                number = From(doubleValue);
                 return true;
             }
 
@@ -112,11 +112,62 @@ namespace Runes.Math
                     den = BigInteger.One;
                 }
 
-                number = Rational(num, den);
+                number = Create(num, den);
                 return true;
             }
 
             return false;
+        }
+
+        public static Rational From(double num)
+        {
+            if (double.IsNaN(num))
+                throw new ArgumentException("Argument is not a number", nameof(num));
+
+            if (double.IsInfinity(num))
+                throw new ArgumentException("Argument is infinity", nameof(num));
+
+            var cultureInfo = CultureInfo.CurrentCulture;
+            var decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator;
+
+            var numText = num.ToString("F", cultureInfo);
+            var split = numText.Split(new[] { decimalSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+            var numerator = BigInteger.Parse(string.Join("", split));
+            var denominator = split.Length > 1
+                ? BigInteger.Pow(10, split[1].Length)
+                : BigInteger.One;
+
+            return Create(numerator, denominator, false).Simplify();
+        }
+
+        public static Rational Create(Int number, Int denominator) => Create(number, denominator, false);
+
+        private static Rational Create(Int number) => Create(number, 1, true);
+
+        private static Rational Create(Int numerator, Int denominator, bool isSimplified)
+        {
+            if (denominator.Equals(Int.Zero))
+                throw new DivideByZeroException();
+
+            if (numerator.Equals(Int.Zero))
+            {
+                return Zero;
+            }
+
+            if (numerator.Equals(denominator))
+            {
+                return numerator.Sign == denominator.Sign
+                    ? One
+                    : MinusOne;
+            }
+
+            var aNum = Int.Abs(numerator);
+            var aDen = Int.Abs(denominator);
+
+            return numerator.Sign == denominator.Sign
+                ? new Rational(aNum, aDen, isSimplified)
+                : new Rational(-aNum, aDen, isSimplified);
         }
 
         // Instance members
@@ -138,13 +189,13 @@ namespace Runes.Math
 
         public bool IsSimplified { get; }
 
-        public Rational Inverse => Rational(Denominator, Numerator, IsSimplified);
+        public Rational Inverse => Create(Denominator, Numerator, IsSimplified);
 
         public override int Sign => Numerator.Sign;
 
         public Int WholePart => Numerator / Denominator;
 
-        public Rational FractionalPart => Rational(Numerator % Denominator, Denominator);
+        public Rational FractionalPart => Create(Numerator % Denominator, Denominator);
 
         public Int Numerator { get; }
 
@@ -167,12 +218,12 @@ namespace Runes.Math
             var sNum = Numerator / gcd;
             var sDen = Denominator / gcd;
 
-            return Rational(sNum, sDen, true);
+            return Create(sNum, sDen, true);
         }
 
         public override int CompareTo(Rational other) => Compare(this, other);
 
-        public bool Equals(Int num) => Equals(Rational(num));
+        public bool Equals(Int num) => Equals(Create(num));
 
         public double ToDouble()
         {
@@ -213,6 +264,8 @@ namespace Runes.Math
 
             return GetFieldsHashCode(s.Numerator, s.Denominator);
         }
+
+        public override Rational ToRational() => this;
 
         public override string ToString()
         {

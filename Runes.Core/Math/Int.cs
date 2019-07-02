@@ -2,7 +2,6 @@
 using System;
 using System.Numerics;
 
-using static Runes.Math.Predef;
 using static Runes.Predef;
 
 namespace Runes.Math
@@ -11,15 +10,15 @@ namespace Runes.Math
     {
         // Static members
 
-        public static implicit operator Int(byte value) => Int(value);
-        public static implicit operator Int(sbyte value) => Int(value);
-        public static implicit operator Int(short value) => Int(value);
-        public static implicit operator Int(ushort value) => Int(value);
-        public static implicit operator Int(int value) => Int(value);
-        public static implicit operator Int(uint value) => Int(value);
-        public static implicit operator Int(long value) => Int(value);
-        public static implicit operator Int(ulong value) => Int(value);
-        public static implicit operator Int(BigInteger value) => Int(value);
+        public static implicit operator Int(byte value) => Create(value);
+        public static implicit operator Int(sbyte value) => Create(value);
+        public static implicit operator Int(short value) => Create(value);
+        public static implicit operator Int(ushort value) => Create(value);
+        public static implicit operator Int(int value) => Create(value);
+        public static implicit operator Int(uint value) => Create(value);
+        public static implicit operator Int(long value) => Create(value);
+        public static implicit operator Int(ulong value) => Create(value);
+        public static implicit operator Int(BigInteger value) => Create(value);
         public static implicit operator BigInteger(Int num) => num.value;
 
         public static explicit operator float(Int num) => (float)num.value;
@@ -48,16 +47,18 @@ namespace Runes.Math
 
         public static Stream<Int> GetValuesFrom(Int from) =>
             StartStream(from)
-                .Map(i => Int(i));
+                .Map(i => Create(i));
 
         public static Stream<Int> GetValuesInRange(Int from, Int to, bool inclusive = true) => 
             StartStream(from)
                 .TakeWhile(num => inclusive ? num <= to : num < to)
-                .Map(n => Int(n));
+                .Map(n => Create(n));
 
         public static Int GreatestCommonDivisor(Int a, Int b) => BigInteger.GreatestCommonDivisor(a, b);
 
-        public static Int Abs(Int num) => num.Sign == One.Sign ? num : Int(BigInteger.Abs(num));
+        public static Int Abs(Int num) => num.Sign == One.Sign ? num : Create(BigInteger.Abs(num));
+
+        private static Int Create(BigInteger bigInteger) => new Int(bigInteger);
 
         // Instance members
 
@@ -99,7 +100,7 @@ namespace Runes.Math
             }
         }
 
-        public Rational ExactDivide(Int another) => Rational(this, another);
+        public Rational ExactDivide(Int another) => Rational.Create(this, another);
 
         public override Int Multiply(Int another)
         {
@@ -142,6 +143,8 @@ namespace Runes.Math
         public bool Equals(int other) => Equals(value, new BigInteger(other));
 
         public override int GetHashCode() => value.GetHashCode();
+
+        public override Rational ToRational() => this;
 
         public override string ToString() => value.ToString();
 

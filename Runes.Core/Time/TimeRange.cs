@@ -1,11 +1,16 @@
 ﻿using System;
-using static Runes.Math.Predef;
+
+using static Runes.Predef;
 
 namespace Runes.Time
 {
     public sealed class TimeRange : IEquatable<TimeRange>
     {
         public static readonly TimeRange Empty = new TimeRange(Instant.UtcUnixEpoch, Instant.UtcUnixEpoch);
+
+        public static implicit operator TimeRange((Instant, Instant) range) => Create(range.Item1, range.Item2);
+
+        public static implicit operator TimeRange((Instant, TimeInterval) range) => Create(range.Item1, range.Item2);
 
         public static TimeRange Create(Instant from, Instant nonInclusiveTo) =>
             from < nonInclusiveTo

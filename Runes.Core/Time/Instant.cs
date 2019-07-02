@@ -7,7 +7,7 @@ namespace Runes.Time
 {
     public sealed class Instant : Ordered<Instant>
     {
-        public static readonly Ordering<Instant> Ordering = new InstantOrdering();
+        public static readonly Ordering<Instant> Ordering = OrderingBy<Instant>();
 
         public static readonly Instant UtcUnixEpoch = new Instant(0);
 
@@ -120,13 +120,6 @@ namespace Runes.Time
             var nearDate = new DateTimeOffset(year, month, day, hour, minute, second, TimeSpan.Zero);
 
             ticks = utcDateTime.Ticks - nearDate.Ticks;
-        }
-    
-        // inner types
-
-        private sealed class InstantOrdering : Ordering<Instant>
-        {
-            public override int Compare(Instant x, Instant y) => x.CompareTo(y);
         }
     }
 }
