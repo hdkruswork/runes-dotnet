@@ -4,6 +4,7 @@ using System.Numerics;
 using Runes.Math;
 using Runes.Math.Algorithms;
 using Runes.Collections.Mutable;
+using Runes.Time;
 
 namespace Runes
 {
@@ -274,6 +275,85 @@ namespace Runes
 
         public static Stream<BigInteger> StartStream(BigInteger start, int step = 1) =>
             Stream(start, () => StartStream(start + step, step));
+
+        public static Stream<char> ToStream(this System.IO.StringReader reader)
+        {
+            char first = (char)reader.Read();
+
+            return first != 0
+                ? Stream(first, () => ToStream(reader))
+                : EmptyStream<char>();
+        }
+
+        #endregion
+
+        #region Time
+
+        public static Instant Now() => Time.Instant.From(DateTimeOffset.UtcNow);
+
+        public static Instant Instant(int year, int month, int day, int hour, int minute, int second, long ticks) =>
+            Time.Instant.From(year, month, day, hour, minute, second, ticks);
+
+        public static Instant Instant(int year, int month, int day, int hour, int minute, int second) =>
+            Time.Instant.From(year, month, day, hour, minute, second);
+
+        public static Instant Instant(int year, int month, int day) => Time.Instant.From(year, month, day);
+
+        public static Instant Instant(Int ticks) => Time.Instant.From(ticks);
+
+        public static Instant Instant(DateTimeOffset dateTimeOffset) => Time.Instant.From(dateTimeOffset);
+
+        public static TimeInterval Ticks(this int value) => TimeInterval.FromTicks(value);
+        public static TimeInterval Ticks(this long value) => TimeInterval.FromTicks(value);
+        public static TimeInterval Ticks(this Int value) => TimeInterval.FromTicks(value);
+
+        public static TimeInterval Seconds(this int value) => TimeInterval.FromSeconds(value);
+        public static TimeInterval Seconds(this long value) => TimeInterval.FromSeconds(value);
+        public static TimeInterval Seconds(this Int value) => TimeInterval.FromSeconds(value);
+
+        public static TimeInterval Minutes(this int value) => TimeInterval.FromMinutes(value);
+        public static TimeInterval Minutes(this long value) => TimeInterval.FromMinutes(value);
+        public static TimeInterval Minutes(this Int value) => TimeInterval.FromMinutes(value);
+
+        public static TimeInterval Hours(this int value) => TimeInterval.FromHours(value);
+        public static TimeInterval Hours(this long value) => TimeInterval.FromHours(value);
+        public static TimeInterval Hours(this Int value) => TimeInterval.FromHours(value);
+
+        public static TimeInterval Days(this int value) => TimeInterval.FromDays(value);
+        public static TimeInterval Days(this long value) => TimeInterval.FromDays(value);
+        public static TimeInterval Days(this Int value) => TimeInterval.FromDays(value);
+
+        public static TimeInterval Weeks(this int value) => TimeInterval.FromWeeks(value);
+        public static TimeInterval Weeks(this long value) => TimeInterval.FromWeeks(value);
+        public static TimeInterval Weeks(this Int value) => TimeInterval.FromWeeks(value);
+
+        public static TimeRange To(this Instant from, Instant to) => TimeRange.Create(from, to);
+
+        public static TimeRange Year(this int year) => TimeRange.Create(Instant(year, 1, 1), Instant(year + 1, 1, 1));
+        public static TimeRange Month(this int year, int month)
+        {
+            var normalizedMonth = Math.Predef.Min(Math.Predef.Max(1, month), 12);
+
+            var daysInMonth = DateTime.DaysInMonth(year, normalizedMonth);
+
+            var from = Instant(year, normalizedMonth, 1);
+            var to = from + daysInMonth.Days();
+
+            return TimeRange.Create(from, to);
+        }
+        public static TimeRange Day(this int year, int month, int day)
+        {
+            var normalizedMonth = Math.Predef.Min(Math.Predef.Max(1, month), 12);
+
+            var daysInMonth = DateTime.DaysInMonth(year, normalizedMonth);
+            var normalizedDay = Math.Predef.Min(Math.Predef.Max(1, day), daysInMonth);
+
+            var from = Instant(year, normalizedMonth, normalizedDay);
+            var to = from + 1.Days();
+
+            return TimeRange.Create(from, to);
+
+        }
 
         #endregion
     }

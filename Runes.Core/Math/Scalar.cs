@@ -46,6 +46,21 @@ namespace Runes.Math
         public override bool Equals(object obj) => obj is This other && EqualsTo(other);
         public override int GetHashCode() => InnerGetHashCode();
 
+        public virtual Rational ToRational()
+        {
+            switch (this)
+            {
+                case Rational rat:
+                    return rat;
+
+                case Int i:
+                    return i;
+
+                default:
+                    throw new NotSupportedException("ToRational() method only supports scalars of type Int or Rational");
+            }
+        }
+
         public abstract int Sign { get; }
         public abstract bool IsOne { get; }
         public abstract bool IsZero { get; }
