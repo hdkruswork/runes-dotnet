@@ -55,7 +55,7 @@ namespace Runes.Time
 
         public Int Ticks { get; }
 
-        public Instant Add(TimeInterval interval) => new Instant(Ticks + interval.Ticks);
+        public Instant Add(TimeInterval interval) => new Instant(Ticks + interval.InTicks);
 
         public override int CompareTo(Instant other) => Ticks.CompareTo(other.Ticks);
 
@@ -64,7 +64,7 @@ namespace Runes.Time
             return TimeInterval.FromTicks(Ticks - other.Ticks);
         }
 
-        public Instant Subtract(TimeInterval interval) => new Instant(Ticks - interval.Ticks);
+        public Instant Subtract(TimeInterval interval) => new Instant(Ticks - interval.InTicks);
 
         public Int ToSeconds() => Ticks / TimeInterval.TicksInASecond;
 

@@ -13,11 +13,11 @@ namespace Runes.Time
 
         public static implicit operator TimeInterval(TimeSpan span) => FromTicks(span.Ticks);
 
-        public static explicit operator TimeSpan(TimeInterval interval) => TimeSpan.FromTicks((long) interval.Ticks);
+        public static explicit operator TimeSpan(TimeInterval interval) => TimeSpan.FromTicks((long) interval.InTicks);
 
-        public static TimeInterval operator +(TimeInterval ti1, TimeInterval ti2) => FromTicks(ti1.Ticks + ti2.Ticks);
+        public static TimeInterval operator +(TimeInterval ti1, TimeInterval ti2) => FromTicks(ti1.InTicks + ti2.InTicks);
 
-        public static TimeInterval operator -(TimeInterval ti1, TimeInterval ti2) => FromTicks(ti1.Ticks - ti2.Ticks);
+        public static TimeInterval operator -(TimeInterval ti1, TimeInterval ti2) => FromTicks(ti1.InTicks - ti2.InTicks);
 
         public static TimeInterval FromTicks(Int ticks) => new TimeInterval(ticks);
 
@@ -33,9 +33,7 @@ namespace Runes.Time
 
         public bool IsEmpty => !NonEmpty;
 
-        public bool NonEmpty => Ticks != 0;
-
-        public Int Ticks { get; }
+        public bool NonEmpty => InTicks != 0;
 
         public Rational InWeeks => InDays / 7;
 
@@ -45,10 +43,16 @@ namespace Runes.Time
 
         public Rational InMinutes => InSeconds / 60;
 
-        public Rational InSeconds => Ticks / TicksInASecond;
+        public Rational InSeconds => InTicks / TicksInASecond;
+
+        public Rational InMilliSeconds => InTicks * 1000 / TicksInASecond;
+
+        public Rational InMicroSeconds => InTicks * 1000_000 / TicksInASecond;
+
+        public Int InTicks { get; }
 
         // private members
 
-        private TimeInterval(Int ticks) => Ticks = ticks;
+        private TimeInterval(Int ticks) => InTicks = ticks;
     }
 }
