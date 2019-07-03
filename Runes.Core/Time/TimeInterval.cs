@@ -47,6 +47,8 @@ namespace Runes.Time
 
         public Rational InSeconds => Ticks / TicksInASecond;
 
+        // private members
+
         private TimeInterval(Int ticks) => Ticks = ticks;
     }
 }

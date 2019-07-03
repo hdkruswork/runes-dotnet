@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Runes.Collections;
+using System;
 
 using static Runes.Predef;
 
@@ -59,6 +60,16 @@ namespace Runes.Time
         }
 
         public bool Equals(TimeRange other) => From == other.From && To == other.To;
+
+        public Stream<Instant> GetInstants(TimeInterval step)
+        {
+            Stream<Instant> GetStream(Instant from, Instant to, TimeInterval step) =>
+                from < to
+                    ? Stream(from, () => GetStream(from + step, to, step))
+                    : EmptyStream<Instant>();
+
+            return GetStream(From, To, step);
+        }
 
         public TimeRange Intersection(TimeRange other)
         {
