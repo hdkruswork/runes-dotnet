@@ -43,11 +43,11 @@ namespace Runes.Time
 
         public Rational InMinutes => InSeconds / 60;
 
-        public Rational InSeconds => InTicks / TicksInASecond;
+        public Rational InSeconds => InTicks.ExactDivide(TicksInASecond);
 
-        public Rational InMilliSeconds => InTicks * 1000 / TicksInASecond;
+        public Rational InMilliSeconds => (InTicks * 1000).ExactDivide(TicksInASecond);
 
-        public Rational InMicroSeconds => InTicks * 1000_000 / TicksInASecond;
+        public Rational InMicroSeconds => (InTicks * 1000_000).ExactDivide(TicksInASecond);
 
         public Int InTicks { get; }
 

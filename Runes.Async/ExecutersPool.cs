@@ -1,5 +1,6 @@
 ﻿using Runes.Async.Jobs;
 using Runes.Collections.Mutable;
+using Runes.Diagnostic;
 using System;
 using System.Threading.Tasks;
 
@@ -119,15 +120,16 @@ namespace Runes.Async
                             job.Status = Running.Value;
                             runningJobs[slot] = job;
 
-                            var result = Try(() => job.Task((eta, progress) => job.Status = RunningWithProgress.Create(eta, progress)));
-                            if (result.GetIfSuccess(out var res))
-                            {
-                                job.Status = DoneWithResult.Create(res);
-                            }
-                            else if (result.GetIfFailure(out Exception ex))
-                            {
-                                job.Status = DoneWithResult.Create(ex);
-                            }
+                            Action<Knowable<long>, int> onProgressCallback =
+                                (eta, progress) => job.Status = RunningWithProgress.Create(eta, progress);
+
+                            Func<Try<object>> tryTask = TryFunc(() => job.Task(onProgressCallback));
+
+                            var tryTaskWithTimeAnalysis = TimeAnalyzer.WithTimeRange(tryTask);
+
+                            var (result, timeRange) = tryTaskWithTimeAnalysis();
+                            job.Status = DoneWithResult.Create(result, timeRange);
+
                             runningJobs[slot] = null;
                         }
                     }

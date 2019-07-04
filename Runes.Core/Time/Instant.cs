@@ -43,13 +43,13 @@ namespace Runes.Time
 
         public static bool operator !=(Instant x, Instant y) => x.NonEqualsTo(y);
 
-        public static bool operator <(Instant x, Instant y) => x.GreaterThan(y);
+        public static bool operator <(Instant x, Instant y) => x.LesserThan(y);
 
-        public static bool operator >(Instant x, Instant y) => x.LesserThan(y);
+        public static bool operator >(Instant x, Instant y) => x.GreaterThan(y);
 
-        public static bool operator <=(Instant x, Instant y) => x.GreaterEqualsThan(y);
+        public static bool operator <=(Instant x, Instant y) => x.LesserEqualsThan(y);
 
-        public static bool operator >=(Instant x, Instant y) => x.LesserEqualsThan(y);
+        public static bool operator >=(Instant x, Instant y) => x.GreaterEqualsThan(y);
 
         public static TimeInterval operator -(Instant instant1, Instant instant2) => instant1.Difference(instant2);
 

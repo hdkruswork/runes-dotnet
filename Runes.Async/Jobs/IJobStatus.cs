@@ -1,4 +1,8 @@
-﻿namespace Runes.Async.Jobs
+﻿using Runes.Time;
+
+using static Runes.Predef;
+
+namespace Runes.Async.Jobs
 {
     public interface IJobStatus
     {
@@ -27,10 +31,15 @@
 
     public interface IDone : IProgressive
     {
+        TimeRange TimeRange { get; }
+
+        Try<Unit> Result { get; }
     }
 
     public interface IDoneWithResult : IDone
     {
-        object Result {  get; }
+        new Try<object> Result {  get; }
+
+        Try<Unit> IDone.Result => Result.Map(_ => Unit());
     }
 }

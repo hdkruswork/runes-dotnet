@@ -5,7 +5,6 @@ using Runes.Math;
 using Runes.Math.Algorithms;
 using Runes.Collections.Mutable;
 using Runes.Time;
-using System.Globalization;
 
 namespace Runes
 {
@@ -110,6 +109,9 @@ namespace Runes
             }
         }
         public static Try<A> Try<A>(Func<A> func) => Try(Lazy(func));
+
+        public static Func<Try<Unit>> TryFunc<A>(Action action) => () => Try(action);
+        public static Func<Try<A>> TryFunc<A>(Func<A> f) => () => Try(f);
 
         public static bool IsFailure<A, E>(Func<A> func, out E ex) where E : Exception => Try(func).GetIfFailure(out ex);
         public static bool IsSuccess<A>(Func<A> func, out A result) => Try(func).GetIfSuccess(out result);

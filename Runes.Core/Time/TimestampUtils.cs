@@ -1,5 +1,4 @@
-﻿using Runes.Math;
-using System;
+﻿using System;
 
 namespace Runes.Time
 {

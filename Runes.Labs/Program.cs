@@ -44,8 +44,12 @@ namespace Runes.Labs
                 {
                     switch (status)
                     {
-                        case DoneWithResult done:
-                            Console.WriteLine($"Job: {id} - Done with result: {done.Result}");
+                        case DoneWithResult done when done.Result is Success<object> success:
+                            Console.WriteLine($"Job: {id} - Done with result: {success.Result} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms");
+                            break;
+
+                        case DoneWithResult done when done.Result is Failure<object> fail:
+                            Console.WriteLine($"Job: {id} - Failed: {fail.Exception} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms");
                             break;
 
                         case RunningWithProgress progress:

@@ -1,4 +1,5 @@
-﻿using static Runes.Predef;
+﻿using Runes.Time;
+using static Runes.Predef;
 
 namespace Runes.Async.Jobs
 {
@@ -74,7 +75,7 @@ namespace Runes.Async.Jobs
 
     public class Done : IDone
     {
-        public static readonly Done Value = new Done();
+        public static Done Create(Try<Unit> result, TimeRange timeRange) => new Done(result, timeRange);
 
         public Knowable<long> ETA => Known(0L);
 
@@ -84,21 +85,30 @@ namespace Runes.Async.Jobs
 
         public bool IsRunning => false;
 
+        public Try<Unit> Result { get; }
+
+        public TimeRange TimeRange { get; }
+
         public override bool Equals(object obj) => obj is IDone;
 
         public override int GetHashCode() => typeof(IDone).GetHashCode() ^ 13;
 
         public override string ToString() => "Done";
 
-        internal Done() { }
+        protected private Done(Try<Unit> result, TimeRange timeRange)
+        {
+            Result = result;
+            TimeRange = timeRange;
+        }
     }
 
     public sealed class DoneWithResult : Done, IDoneWithResult
     {
-        public static DoneWithResult Create(object result) => new DoneWithResult(result);
+        public static DoneWithResult Create(Try<object> result, TimeRange timeRange) => new DoneWithResult(result, timeRange);
 
-        public object Result { get; }
+        public new Try<object> Result { get; }
 
-        internal DoneWithResult(object result) => Result = result;
+        private DoneWithResult(Try<object> result, TimeRange timeRange) : base(result.Map(_ => Unit()), timeRange) =>
+            Result = result;
     }
 }
