@@ -89,7 +89,8 @@ namespace Runes
 
         #region Lazy
 
-        public static Lazy<A> Lazy<A>(Func<A> get) => new Lazy<A>(get);
+        public static Lazy<A> Lazy<A>(A value) => Runes.Lazy<A>.Create(value);
+        public static Lazy<A> Lazy<A>(Func<A> f) => Runes.Lazy<A>.Create(f);
 
         #endregion
 

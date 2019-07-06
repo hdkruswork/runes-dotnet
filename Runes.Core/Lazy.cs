@@ -6,26 +6,31 @@ namespace Runes
 {
     public sealed class Lazy<A>
     {
-        public static implicit operator Lazy<A>(Func<A> func) => new Lazy<A>(func);
+        public static implicit operator Lazy<A>(Func<A> f) => Lazy(f);
         public static implicit operator A(Lazy<A> lazy) => lazy.Get();
 
-        public bool IsComputed { get; private set; }
+        public static Lazy<A> Create(A value) => new Lazy<A>(value);
+        public static Lazy<A> Create(Func<A> f) => new Lazy<A>(f);
 
-        public A Get() => GetIfNotComputed().GetOrElse(value);
+        public bool IsEvaluated { get; private set; }
 
-        public Option<A> GetIfComputed() => IsComputed ? Some(value) : Option<A>.None;
+        public A Get() => GetIfNotEvaluated().GetOrElse(value);
 
-        public Option<A> GetIfNotComputed()
+        public Option<A> GetIfEvaluated() => IsEvaluated ? Some(value) : Option<A>.None;
+
+        public Option<A> GetIfNotEvaluated()
         {
             Option<A> res = None<A>();
-            if (!IsComputed)
+            if (!IsEvaluated)
             {
-                lock (this)
+                lock (syncObj)
                 {
-                    if (!IsComputed)
+                    if (!IsEvaluated)
                     {
                         value = getValueFunc();
-                        IsComputed = true;
+                        IsEvaluated = true;
+                        getValueFunc = null;
+                        syncObj = null;
                         res = Some(value);
                     }
                 }
@@ -34,18 +39,27 @@ namespace Runes
         }
 
         public override string ToString() =>
-            GetIfComputed()
+            GetIfEvaluated()
                 .Map(v => v.ToString())
                 .GetOrElse("Lazy(...)");
 
-        internal Lazy(Func<A> function)
+        private Lazy(Func<A> f)
         {
-            getValueFunc = function;
+            getValueFunc = f;
             value = default;
-            IsComputed = false;
+            IsEvaluated = false;
+            syncObj = new object();
+        }
+        private Lazy(A value)
+        {
+            getValueFunc = null;
+            this.value = value;
+            IsEvaluated = true;
+            syncObj = null;
         }
 
         private A value;
-        private readonly Func<A> getValueFunc;
+        private Func<A> getValueFunc;
+        private object syncObj;
     }
 }
