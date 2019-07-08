@@ -96,7 +96,7 @@ namespace Runes.Collections
                 return this;
             }
 
-            public override List<A> Build() => innerList.Reverse();
+            public override List<A> Build() => innerList.FoldLeft(Empty, (agg, it) => agg.Prepend(it));
 
             public override List<A> GetEmpty() => Empty;
         }

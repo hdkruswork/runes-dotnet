@@ -1,5 +1,7 @@
 ﻿using Runes.Async;
 using Runes.Async.Jobs;
+using Runes.Collections;
+using Runes.Math;
 using Runes.Security.Cryptography;
 using Runes.Text;
 using System;
@@ -14,7 +16,12 @@ namespace Runes.Labs
         static void Main()
         {
             //LoadAssemblies();
-            //
+
+            TestStreams();
+        }
+
+        private static void TestExecutionPool()
+        {
             //var executorPool = AppDomain
             //    .CurrentDomain
             //    .CreateInstance("Runes.Async", "Runes.Async.ExecutersPool")
@@ -89,6 +96,61 @@ namespace Runes.Labs
             );
 
             executorPool.WaitForAll();
+        }
+
+        private static void TestStreams()
+        {
+            static string ConjugateCorrespondVerb(bool affirmative) => affirmative ? "corresponds" : "DOESN'T correspond";
+
+            // Factorial test
+
+            static Stream<Int> factorial() =>
+                Stream(1, () => factorial().Zip(StartStream(1)).Map(p => p.Item1 * p.Item2));
+
+            var expectedFactorial = Stream<Int>(1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880);
+
+            var factCorresponds = factorial()
+                .Take(10)
+                .Correspond(expectedFactorial);
+
+            Console.WriteLine($"Factorial first 10 values {ConjugateCorrespondVerb(factCorresponds)} to {expectedFactorial.Join(", ")}");
+            
+            // Fibonacci test
+
+            static Stream<Int> fibonacci() =>
+                Stream<Int>(0, 1).Append(() => fibonacci().Zip(fibonacci().Tail).Map(p => p.Item1 + p.Item2));
+
+            var expectedFibonacci = Stream<Int>(0, 1, 1, 2, 3, 5, 8, 13, 21, 34);
+
+            var fibCorresponds = fibonacci()
+                .Take(10)
+                .Correspond(expectedFibonacci);
+
+            Console.WriteLine($"Fibonacci first 10 values {ConjugateCorrespondVerb(fibCorresponds)} to {expectedFibonacci.Join(", ")}");
+
+            // Test slicing
+
+            var pairs1 = Stream(1, 2, 3, 4, 5, 6)
+                .Slice(2, 2)
+                .Map(a => a.ToMutableArray())
+                .Map(a => (a[0], a[1]));
+
+            var expectedSliced1 = Stream((1, 2), (3, 4), (5, 6));
+
+            var slicedCorresponds1 = pairs1.Correspond(expectedSliced1);
+
+            Console.WriteLine($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds1)} to {expectedSliced1.Join(", ")}");
+
+            var pairs2 = Stream(1, 2, 3, 4, 5, 6)
+                .Slice(2, 1)
+                .Map(a => a.ToMutableArray())
+                .Map(a => (a[0], a[1]));
+
+            var expectedSliced2 = Stream((1, 2), (2, 3), (3, 4), (4, 5), (5, 6));
+
+            var slicedCorresponds2 = pairs2.Correspond(expectedSliced2);
+
+            Console.WriteLine($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds2)} to {expectedSliced2.Join(", ")}");
         }
 
         //private static void LoadAssemblies()

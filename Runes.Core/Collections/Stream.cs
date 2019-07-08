@@ -90,7 +90,7 @@ namespace Runes.Collections
             var head = Take(size).ToArray();
             var tail = Drops(currStep);
 
-            return nextStep > 0 && head.NonEmpty
+            return nextStep > 0 && head.Length == size
                 ? Stream(head, () => tail.Slice(size, currStep))
                 : Stream<Array<A>>.Empty;
         }

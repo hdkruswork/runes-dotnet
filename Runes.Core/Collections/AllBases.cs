@@ -39,6 +39,8 @@ namespace Runes.Collections
 
         public virtual bool Correspond<B>(IIterable<B> other, Func<A, B, bool> f) => CollectionHelper.Correspond(this, other, f);
 
+        public virtual bool Correspond<B>(IIterable<B> other) => CollectionHelper.Correspond(this, other);
+
         public THIS Drops(Int count) => CollectionHelper.Drops<A, THIS>(This, count);
 
         public THIS DropsWhile(Func<A, bool> p) => DropsWhile(p, out _, true);
@@ -231,6 +233,8 @@ namespace Runes.Collections
             Try(() => this[(long) idx])
                 .ToOption()
                 .Flatten();
+
+        public A UnsafeGetAt(Int idx) => GetAt(idx).GetOrElse(() => throw new IndexOutOfRangeException());
 
         public override That FoldLeftWhile<That>(That initialValue, Func<That, A, bool> p, Func<That, A, That> f)
         {

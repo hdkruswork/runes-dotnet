@@ -5,6 +5,8 @@ using Runes.Math;
 using Runes.Math.Algorithms;
 using Runes.Collections.Mutable;
 using Runes.Time;
+using System.Collections;
+using Runes.Text;
 
 namespace Runes
 {
@@ -256,6 +258,26 @@ namespace Runes
 
         #endregion
 
+        #region Ensure Between
+
+        public static byte EnsureBetween(byte min, byte max, byte value) => Max(min, Min(value, max));
+        public static sbyte EnsureBetween(sbyte min, sbyte max, sbyte value) => Max(min, Min(value, max));
+        public static short EnsureBetween(short min, short max, short value) => Max(min, Min(value, max));
+        public static ushort EnsureBetween(ushort min, ushort max, ushort value) => Max(min, Min(value, max));
+        public static int EnsureBetween(int min, int max, int value) => Max(min, Min(value, max));
+        public static uint EnsureBetween(uint min, uint max, uint value) => Max(min, Min(value, max));
+        public static long EnsureBetween(long min, long max, long value) => Max(min, Min(value, max));
+        public static ulong EnsureBetween(ulong min, ulong max, ulong value) => Max(min, Min(value, max));
+        public static float EnsureBetween(float min, float max, float value) => Max(min, Min(value, max));
+        public static double EnsureBetween(double min, double max, double value) => Max(min, Min(value, max));
+        public static decimal EnsureBetween(decimal min, decimal max, decimal value) => Max(min, Min(value, max));
+        public static BigInteger EnsureBetween(BigInteger min, BigInteger max, BigInteger value) => Max(min, Min(value, max));
+        public static Int EnsureBetween(Int min, Int max, Int value) => Max(min, Min(value, max));
+        public static Rational EnsureBetween(Rational min, Rational max, Rational value) => Max(min, Min(value, max));
+
+
+        #endregion
+
         #endregion
 
         #region Collections
@@ -403,7 +425,7 @@ namespace Runes
         public static Stream<A> Stream<A>(A head, Stream<A> tail) => Collections.Stream<A>.Create(head, () => tail);
         public static Stream<A> Stream<A>(A head, Func<Stream<A>> tailFunc) => Collections.Stream<A>.Create(head, tailFunc);
 
-        public static Stream<BigInteger> StartStream(BigInteger start, int step = 1) =>
+        public static Stream<Int> StartStream(Int start, int step = 1) =>
             Stream(start, () => StartStream(start + step, step));
 
         public static Stream<char> ToStream(this System.IO.StringReader reader)
@@ -414,6 +436,16 @@ namespace Runes
                 ? Stream(first, () => ToStream(reader))
                 : EmptyStream<char>();
         }
+
+        #endregion
+
+        #region Text
+
+        public static string Join(this IEnumerable enumerable, string start, string separator, string ends) =>
+            TextUtils.Join(enumerable, start, separator, ends);
+
+        public static string Join(this IEnumerable enumerable, string separator) =>
+            Join(enumerable, string.Empty, separator, string.Empty);
 
         #endregion
 

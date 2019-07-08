@@ -13,6 +13,7 @@ namespace Runes.Collections
         IIterable<B> As<B>();
         IIterable<B> Collect<B>(Func<object, Option<B>> f);
         bool Correspond<B>(IIterable<B> other, Func<object, B, bool> f);
+        bool Correspond<B>(IIterable<B> other);
         IIterable Drops(Int count);
         IIterable DropsWhile(Func<object, bool> p);
         IIterable DropsWhileNot(Func<object, bool> p);

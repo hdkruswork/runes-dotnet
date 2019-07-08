@@ -40,6 +40,9 @@ namespace Runes.Collections
             return builder.Build();
         }
 
+        public static bool Correspond<A, B>(IIterable<A> iter1, IIterable<B> iter2) =>
+            Correspond(iter1, iter2, (a, b) => Equals(a, b));
+
         public static bool Correspond<A, B>(IIterable<A> iter1, IIterable<B> iter2, Func<A, B, bool> f)
         {
             var curr1 = iter1;
