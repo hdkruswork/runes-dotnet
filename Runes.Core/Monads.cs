@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Runes.Collections;
+using Runes.Collections.Operators;
 using Runes.Math;
 using static Runes.Predef;
 
@@ -49,6 +50,8 @@ namespace Runes
     {
         public bool IsEmpty => !NonEmpty;
         public bool NonEmpty => GetIfPresent(out _);
+
+        public SizeCompareOps SizeIs { get; }
 
         public bool Contains(A item) => GetIfPresent(out var value) && value.Equals(item);
         public bool Correspond<B>(IIterable<B> other, Func<A, B, bool> f) => CollectionHelper.Correspond(this, other, f);
@@ -156,6 +159,8 @@ namespace Runes
         // protected members
 
         protected MM This => (MM) this;
+
+        protected MonadBase() => SizeIs = new SizeCompareOps(this);
 
         protected That As<B, That>(IFactory<B, That> factory) where That : IMonad<B>
         {

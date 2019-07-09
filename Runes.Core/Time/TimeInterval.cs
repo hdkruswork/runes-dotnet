@@ -31,6 +31,8 @@ namespace Runes.Time
 
         public static TimeInterval FromSeconds(Rational seconds) => new TimeInterval((seconds * TicksInASecond).WholePart);
 
+        public static TimeInterval FromMilliseconds(Rational millis) => new TimeInterval((millis * TicksInASecond / 1000).WholePart);
+
         public bool IsEmpty => !NonEmpty;
 
         public bool NonEmpty => InTicks != 0;

@@ -1,4 +1,5 @@
-﻿using Runes.Math;
+﻿using Runes.Collections.Operators;
+using Runes.Math;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -77,6 +78,8 @@ namespace Runes.Collections
 
             public virtual IterableSet Tail { get; }
 
+            public SizeCompareOps SizeIs { get; }
+
             public Set<B>.IterableSet As<B>() => CollectionHelper.As(this, GetFactory<B>());
 
             public Set<B>.IterableSet Collect<B>(Func<A, Option<B>> f) =>
@@ -153,9 +156,9 @@ namespace Runes.Collections
 
             // private members
 
-            protected private IterableSet() { }
+            protected private IterableSet() => SizeIs = new SizeCompareOps(this);
 
-            protected private IterableSet(A head, IterableSet tail)
+            protected private IterableSet(A head, IterableSet tail) : this()
             {
                 HeadOption = Some(head);
                 Tail = tail;

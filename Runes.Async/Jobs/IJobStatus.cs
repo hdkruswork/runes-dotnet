@@ -10,18 +10,11 @@ namespace Runes.Async.Jobs
         bool IsRunning {  get; }
     }
 
-    public interface IProgressive : IJobStatus
-    {
-        Knowable<long> ETA { get; }
-
-        int Progress {  get; }
-    }
-
     public interface IUnresolved : IJobStatus
     {
     }
 
-    public interface IReadyToRun : IUnresolved, IProgressive
+    public interface IReadyToRun : IUnresolved
     {
     }
 
@@ -29,7 +22,7 @@ namespace Runes.Async.Jobs
     {
     }
 
-    public interface IDone : IProgressive
+    public interface IDone: IJobStatus
     {
         TimeRange TimeRange { get; }
 

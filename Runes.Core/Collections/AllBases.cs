@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Runes.Collections.Operators;
 using Runes.Math;
 
 using static Runes.Predef;
@@ -73,6 +74,8 @@ namespace Runes.Collections
 
         public virtual (THIS, THIS) Partition(Func<A, bool> p) => CollectionHelper.Partition(this, p, GetFactory());
 
+        public SizeCompareOps SizeIs { get; }
+
         public virtual THIS Take(Int count) => CollectionHelper.Take(This, count, GetFactory());
 
         public THIS TakeWhile(Func<A, bool> p) => TakeWhile(p, true);
@@ -103,6 +106,8 @@ namespace Runes.Collections
         }
 
         // protected members
+
+        protected IterableBase() => SizeIs = new SizeCompareOps(this);
 
         protected That As<B, That>(IFactory<B, That> factory) where That : IIterable<B> =>
             CollectionHelper.As(this, factory);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Runes.Collections.Operators;
 using Runes.Math;
 
 namespace Runes.Collections
@@ -31,6 +32,7 @@ namespace Runes.Collections
         Unit ForeachWhile(Func<object, bool> p, Action<object> action);
         IIterable<B> Map<B>(Func<object, B> f);
         (IIterable, IIterable) Partition(Func<object, bool> p);
+        SizeCompareOps SizeIs { get; }
         IIterable Take(Int count);
         IIterable TakeWhile(Func<object, bool> p);
         IIterable TakeWhileNot(Func<object, bool> p);

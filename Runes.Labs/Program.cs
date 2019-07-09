@@ -5,8 +5,7 @@ using Runes.Math;
 using Runes.Security.Cryptography;
 using Runes.Text;
 using System;
-using System.Text;
-
+using System.Threading;
 using static Runes.Predef;
 
 namespace Runes.Labs
@@ -15,34 +14,27 @@ namespace Runes.Labs
     {
         static void Main()
         {
-            //LoadAssemblies();
+            TestExecutionPool();
+
+            Println("====================");
 
             TestStreams();
+
+            Println("====================");
         }
 
         private static void TestExecutionPool()
         {
-            //var executorPool = AppDomain
-            //    .CurrentDomain
-            //    .CreateInstance("Runes.Async", "Runes.Async.ExecutersPool")
-            //    .Unwrap();
-
             var hexDecoder = HexDecoder.Object;
             var sha256 = Sha256Algorithm.Object;
 
-            Console.WriteLine("Testing execution pool");
+            Println("Testing execution pool");
 
-            var firstTaskName = "1st Task";
-            var firstTaskId = hexDecoder.Decode(sha256.Compute(firstTaskName, Encoding.UTF8));
+            Println($"Curr dir: {AppDomain.CurrentDomain.BaseDirectory}");
 
-            var secondTaskName = "2nd Task";
-            var secondTaskId = hexDecoder.Decode(sha256.Compute(secondTaskName, Encoding.UTF8));
+            var executorPool = ExecutionPool.Create();
 
-            Console.WriteLine($"Curr dir: {AppDomain.CurrentDomain.BaseDirectory}");
-
-            var executorPool = new ExecutersPool();
-
-            Console.WriteLine($"Pool size: {executorPool.PoolSize}");
+            Println($"Pool size: {executorPool.PoolSize}");
 
             var consoleSyncObj = new object();
             Action<string, IJobStatus> updateStatus = (id, status) =>
@@ -52,50 +44,84 @@ namespace Runes.Labs
                     switch (status)
                     {
                         case DoneWithResult done when done.Result is Success<object> success:
-                            Console.WriteLine($"Job: {id} - Done with result: {success.Result} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms");
+                            Println(
+                                $"Job: {id} - Done with result: {success.Result} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms",
+                                foreColor: ConsoleColor.Green
+                            );
                             break;
 
                         case DoneWithResult done when done.Result is Failure<object> fail:
-                            Console.WriteLine($"Job: {id} - Failed: {fail.Exception} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms");
-                            break;
-
-                        case RunningWithProgress progress:
-                            Console.WriteLine($"Job: {id} - Running: {progress.Progress}% {progress.ETA.ToOption().Map(eta => $"ETA {eta}s").GetOrElse("")}");
+                            Println(
+                                $"Job: {id} - Failed: {fail.Exception.Message} in {done.TimeRange.Interval.InMilliSeconds.WholePart} ms",
+                                foreColor: ConsoleColor.Red
+                            );
                             break;
 
                         default:
-                            Console.WriteLine($"Job: {id} : {status}");
+                            Println($"Job: {id} : {status}", foreColor: ConsoleColor.Yellow);
                             break;
                     }
                 }
             };
 
+            var firstTaskName = "1st Task";
+            var firstJobCancellationSource = new CancellationTokenSource();
+            var firstJobSettings = new JobSettings
+            {
+                CancellationToken = firstJobCancellationSource.Token,
+                ProgressSource = Progress
+                    .Create(maxSteps: 4)
+                    .Subscribe(progress => {
+                        var percent = ((double)progress.Steps) / progress.MaxSteps * 100;
+                        var etaMessage = progress.ETA
+                            .Map(eta => $" ETA: {eta.InMilliSeconds.WholePart} ms")
+                            .GetOrElse(string.Empty);
+                        var status = $"{firstTaskName} > {percent.ToString(".00")}%{etaMessage}";
+
+                        Println(status, foreColor: ConsoleColor.Yellow);
+                    })
+                    .Source
+            };
+
             executorPool.Execute(
-                firstTaskId,
-                firstTaskName,
-                update => {
-                    System.Threading.Thread.Sleep(500);
-                    update(Known(1000L), 33);
-                    System.Threading.Thread.Sleep(500);
-                    update(Known(500L), 66);
-                    System.Threading.Thread.Sleep(500);
+                firstJobSettings,
+                settings => {
+                    settings.ProgressSource.Step(eta: 1500.Milliseconds());
+
+                    Thread.Sleep(500);
+                    settings.ProgressSource.Step(eta: 1000.Milliseconds());
+
+                    settings.CancellationToken.ThrowIfCancellationRequested();
+
+                    Thread.Sleep(500);
+                    settings.ProgressSource.Step(eta: 500.Milliseconds());
+
+                    settings.CancellationToken.ThrowIfCancellationRequested();
+
+                    Thread.Sleep(500);
+                    settings.ProgressSource.Step(eta: 0.Milliseconds());
 
                     return 120;
                 },
                 updateStatus.Curry(firstTaskName)
             );
 
+            var secondTaskName = "2nd Task";
+            var secondJobSetting = new JobSettings();
+
             executorPool.Execute(
-                secondTaskId,
-                secondTaskName,
-                update => {
-                    System.Threading.Thread.Sleep(750);
+                secondJobSetting,
+                _ => {
+                    Thread.Sleep(750);
                     return 480;
                 },
                 updateStatus.Curry(secondTaskName)
             );
 
-            executorPool.WaitForAll();
+            Thread.Sleep(750);
+            firstJobCancellationSource.Cancel();
+
+            executorPool.StopAndWait().GetAwaiter().GetResult();
         }
 
         private static void TestStreams()
@@ -113,7 +139,7 @@ namespace Runes.Labs
                 .Take(10)
                 .Correspond(expectedFactorial);
 
-            Console.WriteLine($"Factorial first 10 values {ConjugateCorrespondVerb(factCorresponds)} to {expectedFactorial.Join(", ")}");
+            Println($"Factorial first 10 values {ConjugateCorrespondVerb(factCorresponds)} to {expectedFactorial.Join(", ")}");
             
             // Fibonacci test
 
@@ -126,7 +152,7 @@ namespace Runes.Labs
                 .Take(10)
                 .Correspond(expectedFibonacci);
 
-            Console.WriteLine($"Fibonacci first 10 values {ConjugateCorrespondVerb(fibCorresponds)} to {expectedFibonacci.Join(", ")}");
+            Println($"Fibonacci first 10 values {ConjugateCorrespondVerb(fibCorresponds)} to {expectedFibonacci.Join(", ")}");
 
             // Test slicing
 
@@ -139,7 +165,7 @@ namespace Runes.Labs
 
             var slicedCorresponds1 = pairs1.Correspond(expectedSliced1);
 
-            Console.WriteLine($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds1)} to {expectedSliced1.Join(", ")}");
+            Println($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds1)} to {expectedSliced1.Join(", ")}");
 
             var pairs2 = Stream(1, 2, 3, 4, 5, 6)
                 .Slice(2, 1)
@@ -150,19 +176,29 @@ namespace Runes.Labs
 
             var slicedCorresponds2 = pairs2.Correspond(expectedSliced2);
 
-            Console.WriteLine($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds2)} to {expectedSliced2.Join(", ")}");
+            Println($"Sliced stream {ConjugateCorrespondVerb(slicedCorresponds2)} to {expectedSliced2.Join(", ")}");
         }
 
-        //private static void LoadAssemblies()
-        //{
-        //    var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-        //    var loadedPaths = loadedAssemblies.Select(a => a.Location).ToArray();
+        private static void Println(
+            string text,
+            ConsoleColor foreColor = ConsoleColor.White,
+            ConsoleColor backColor = ConsoleColor.Black
+        ) {
+            lock (ConsoleAsyncObj)
+            {
+                var prevForeColor = Console.ForegroundColor;
+                var prevBackColor = Console.BackgroundColor;
 
-        //    var referencedPaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll");
-        //    var toLoad = referencedPaths.Where(r => !loadedPaths.Contains(r, StringComparer.InvariantCultureIgnoreCase)).ToList();
-        //    toLoad.ForEach(path => {
-        //        loadedAssemblies.Add(Assembly.LoadFrom(path));
-        //    });
-        //}
+                Console.ForegroundColor = foreColor;
+                Console.BackgroundColor = backColor;
+
+                Console.WriteLine(text);
+
+                Console.ForegroundColor = prevForeColor;
+                Console.BackgroundColor = prevBackColor;
+            }
+        }
+
+        private static readonly object ConsoleAsyncObj = new object();
     }
 }

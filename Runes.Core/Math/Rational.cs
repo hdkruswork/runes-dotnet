@@ -13,11 +13,11 @@ namespace Runes.Math
 
         private const string m_solidus = @"/";
 
-        public static readonly Rational MinusOne = Create(Int.MinusOne);
+        public static readonly Rational MinusOne = new Rational(Int.MinusOne, Int.One, true);
 
-        public static readonly Rational One = Create(Int.One);
+        public static readonly Rational One = new Rational(Int.One, Int.One, true);
 
-        public static readonly Rational Zero = Create(Int.Zero);
+        public static readonly Rational Zero = new Rational(Int.Zero, Int.One, true);
 
         public static implicit operator Rational(byte num) => Create(num);
 
